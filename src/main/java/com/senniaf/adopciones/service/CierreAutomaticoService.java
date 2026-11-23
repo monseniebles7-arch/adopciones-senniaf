@@ -39,7 +39,7 @@ import java.util.Map;
  *     app.expedientes.dias-cierre-automatico=7
  *
  * Cada cierre queda en el historial como hecho por "Sistema" y en la
- * seccion Cierres automaticos. Si no debia cerrarse, el Administrador lo
+ * seccion Cierres automaticos. Si no debia cerrarse, el Equipo Tecnico lo
  * reabre con motivo.
  */
 @Service
@@ -107,7 +107,7 @@ public class CierreAutomaticoService {
             expedienteService.registrar(e, TipoEvento.CAMBIO_ESTADO,
                     "Cierre automático: " + plazoDias + " días sin actividad en la etapa "
                             + e.getEstadoJuridico().getEtiqueta() + " (última actividad: "
-                            + ultima.format(FECHA_HORA) + "). Si no debía cerrarse, el Administrador puede reabrirlo.",
+                            + ultima.format(FECHA_HORA) + "). Si no debía cerrarse, el Equipo Técnico puede reabrirlo.",
                     USUARIO_SISTEMA, ROL_SISTEMA);
             cerrados++;
         }

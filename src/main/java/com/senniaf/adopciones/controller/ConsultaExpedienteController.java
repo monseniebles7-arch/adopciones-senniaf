@@ -1,6 +1,7 @@
 package com.senniaf.adopciones.controller;
 
 import com.senniaf.adopciones.model.Expediente;
+import com.senniaf.adopciones.model.TipoEvento;
 import com.senniaf.adopciones.model.Usuario;
 import com.senniaf.adopciones.service.CierreAutomaticoService;
 import com.senniaf.adopciones.service.ExpedienteService;
@@ -23,9 +24,8 @@ import java.util.Optional;
  *
  * Cuelga de /api/expedientes, que NO esta en las reglas por rol de
  * SecurityConfig y por lo tanto cae en .anyRequest().authenticated():
- * los tres roles pueden consultar, pero nadie sin token. Es a
- * proposito, porque el Juez necesita leer expedientes aunque no pueda
- * modificarlos; escribir sigue reservado a /api/tecnico/**.
+ * los roles Tecnico y Juez pueden consultar. El Administrador consulta
+ * solo el resumen de auditoria, sin acceso a las fichas.
  */
 @RestController
 @RequestMapping("/api/expedientes")
@@ -53,9 +53,12 @@ public class ConsultaExpedienteController {
                                        @RequestParam(required = false) String modalidad,
                                        @RequestParam(required = false) String etapa,
                                        @RequestParam(defaultValue = "0") int pagina,
-                                       @RequestParam(defaultValue = "10") int tamano) {
+                                       @RequestParam(defaultValue = "10") int tamano,
+                                       @AuthenticationPrincipal Usuario usuario) {
 
         Page<Expediente> resultado = servicio.buscar(q, estado, modalidad, etapa, pagina, tamano);
+        resultado.getContent().forEach(e -> servicio.registrar(e, TipoEvento.CONSULTA,
+                "Consulta del expediente desde el listado.", usuario));
 
         List<Map<String, Object>> filas = resultado.getContent().stream()
                 .map(servicio::aResumen)

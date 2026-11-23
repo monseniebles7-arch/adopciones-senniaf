@@ -132,7 +132,7 @@ textarea:disabled { background: #EEF1F5; color: var(--muted); }
 .dictamen-posicion { margin: -6px 0 16px; color: var(--ink); }
 .dictamen-posicion strong { font-size: 1.0625rem; }
 
-/* Cambio de dictamen (solo Administrador) */
+/* Cambio de dictamen (solo Equipo Tecnico) */
 .form-cambio { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); }
 .form-cambio h3 { margin: 0 0 4px; font: 700 1.0625rem var(--font-head); }
 .form-cambio > .hint { margin: 0 0 14px; }

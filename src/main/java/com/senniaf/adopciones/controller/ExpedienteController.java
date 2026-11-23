@@ -23,9 +23,9 @@ import java.util.Optional;
  * Operaciones que ESCRIBEN sobre el expediente (HU-02 y HU-03).
  *
  * Cuelga de /api/tecnico/**, asi que SecurityConfig solo deja pasar a
- * ADMINISTRADOR y TECNICO: un JUEZ recibe 403 y quien no manda token
- * recibe 401. Las consultas van en ConsultaExpedienteController, que si
- * admite a los tres roles.
+ * TECNICO: Administrador y Juez reciben 403 y quien no manda token
+ * recibe 401. Las consultas van en ConsultaExpedienteController, abiertas
+ * al Equipo Tecnico y al Juez.
  *
  * Cambio del Sprint 3: el expediente ya no se guarda en una lista en
  * memoria. Todo pasa por ExpedienteService, que persiste en base de
@@ -100,10 +100,10 @@ public class ExpedienteController {
         }
 
         // Sprint 8 (decision del PO): un expediente cerrado solo lo reabre el
-        // Administrador, con motivo (POST /api/admin/expedientes/{n}/reapertura).
+        // Equipo Tecnico, con motivo (POST /api/tecnico/expedientes/{n}/reapertura).
         if (encontrado.get().getEstado() == EstadoExpediente.CERRADO && nuevo != EstadoExpediente.CERRADO) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(Map.of("error", "Un expediente cerrado solo lo puede reabrir el Administrador, indicando el motivo."));
+                    .body(Map.of("error", "Un expediente cerrado solo lo puede reabrir el Equipo Técnico, indicando el motivo."));
         }
 
         return ResponseEntity.ok(servicio.aDetalle(

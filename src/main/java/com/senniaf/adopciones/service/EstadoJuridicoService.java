@@ -23,10 +23,10 @@ import java.util.stream.Collectors;
  *   1. Con el expediente Cerrado no se cambia la etapa: primero se reabre.
  *   2. Solo se avanza; no se vuelve a una etapa anterior.
  *   3. Cambiar la etapa exige una observacion de al menos 20 caracteres.
- *   4. Solo el Administrador reabre un expediente cerrado, con motivo.
+ *   4. Solo el Equipo Tecnico reabre un expediente cerrado, con motivo.
  *
  * Quien puede llamar a cada metodo lo decide la ruta (SecurityConfig):
- * cambiarEtapa esta bajo /api/juez/** y reabrir bajo /api/admin/**.
+ * cambiarEtapa esta bajo /api/juez/** y reabrir bajo /api/tecnico/**.
  */
 @Service
 public class EstadoJuridicoService {
@@ -74,7 +74,7 @@ public class EstadoJuridicoService {
         // Decision 1: un expediente cerrado no admite cambios.
         if (e.getEstado() == EstadoExpediente.CERRADO) {
             throw new Rechazo(Motivo.CONFLICTO,
-                    "El expediente está cerrado: el Administrador debe reabrirlo antes de cambiar la etapa jurídica.",
+                    "El expediente está cerrado: el Equipo Técnico debe reabrirlo antes de cambiar la etapa jurídica.",
                     null);
         }
 
@@ -123,7 +123,7 @@ public class EstadoJuridicoService {
     }
 
     // =====================================================================
-    //  Decision 4 · Reabrir (solo Administrador)
+    //  Decision 4 · Reabrir (solo Equipo Técnico)
     // =====================================================================
 
     @Transactional

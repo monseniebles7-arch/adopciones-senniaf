@@ -25,12 +25,9 @@ import java.util.Optional;
 /**
  * Dictamen de idoneidad y lista de espera (HU-06.1 a HU-06.4).
  *
- * Mismo reparto de rutas de todos los sprints anteriores, sin tocar la
- * configuracion de seguridad:
- *   - Emitir (escribe)   -> /api/tecnico/** : Administrador y Tecnico.
- *   - Cambiar y reabrir  -> /api/admin/**   : solo Administrador
- *                           (decisiones del PO, Sprint 7). Tecnico y Juez: 403.
- *   - Consultar (lee)    -> /api/familias/**: los tres roles, con token.
+ * Operaciones de dictamen por rol:
+ *   - Emitir, cambiar y reabrir -> /api/tecnico/** : solo Equipo Tecnico.
+ *   - Consultar (lee)    -> /api/familias/**: Equipo Tecnico y Juez.
  */
 @RestController
 public class DictamenController {
@@ -72,7 +69,7 @@ public class DictamenController {
      *   404  no existe la solicitud
      *   409  la solicitud esta cerrada, o todavia no tiene dictamen
      */
-    @PostMapping("/api/admin/familias/{numero}/dictamen/cambio")
+    @PostMapping("/api/tecnico/familias/{numero}/dictamen/cambio")
     public ResponseEntity<Map<String, Object>> cambiar(@PathVariable String numero,
                                                         @RequestBody Map<String, Object> cuerpo,
                                                         @AuthenticationPrincipal Usuario usuario) {
@@ -85,7 +82,7 @@ public class DictamenController {
     }
 
     /**
-     * Sprint 7 (decision del PO): solo el Administrador reabre una solicitud
+     * Solo el Equipo Tecnico reabre una solicitud
      * cerrada, con motivo. Cuerpo: {"motivo": "..."}
      *
      *   200  ficha de la familia con su nuevo estado
@@ -93,7 +90,7 @@ public class DictamenController {
      *   404  no existe la solicitud
      *   409  la solicitud no esta cerrada
      */
-    @PostMapping("/api/admin/familias/{numero}/reapertura")
+    @PostMapping("/api/tecnico/familias/{numero}/reapertura")
     public ResponseEntity<Map<String, Object>> reabrir(@PathVariable String numero,
                                                         @RequestBody Map<String, Object> cuerpo,
                                                         @AuthenticationPrincipal Usuario usuario) {
@@ -125,7 +122,7 @@ public class DictamenController {
         return ResponseEntity.ok(respuesta);
     }
 
-    /** HU-06.3: lista de espera de familias idoneas, para los tres roles. */
+    /** HU-06.3: lista de espera para Equipo Tecnico y Juez. */
     @GetMapping("/api/familias/lista-espera")
     public Map<String, Object> listaDeEspera() {
         List<Map<String, Object>> filas = dictamenes.listaDeEspera();

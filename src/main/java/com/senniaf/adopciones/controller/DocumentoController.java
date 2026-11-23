@@ -29,9 +29,8 @@ import java.util.Optional;
  * Documentos del expediente (HU-04).
  *
  * El reparto de rutas repite el criterio del Sprint 3:
- *   - Adjuntar (escribe)  -> /api/tecnico/**   : ADMINISTRADOR y TECNICO.
- *   - Listar y descargar  -> /api/expedientes/**: los tres roles, pero
- *     nadie sin token, porque cae en .anyRequest().authenticated().
+ *   - Adjuntar (escribe)  -> /api/tecnico/**   : solo TECNICO.
+ *   - Listar y descargar  -> /api/expedientes/**: Equipo Tecnico y Juez.
  *
  * Asi se cumple "solo usuarios autorizados pueden consultar o descargar
  * documentos" sin tocar SecurityConfig.
@@ -48,7 +47,7 @@ public class DocumentoController {
     }
 
     // =====================================================================
-    //  Adjuntar  (ADMINISTRADOR, TECNICO)
+    //  Adjuntar  (TECNICO)
     // =====================================================================
 
     @PostMapping(path = "/api/tecnico/expedientes/{numero}/documentos",
@@ -74,7 +73,7 @@ public class DocumentoController {
     }
 
     // =====================================================================
-    //  Listar y descargar  (los tres roles, con token)
+    //  Listar y descargar  (Equipo Tecnico y Juez, con token)
     // =====================================================================
 
     @GetMapping("/api/expedientes/{numero}/documentos")

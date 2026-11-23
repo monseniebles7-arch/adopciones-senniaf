@@ -64,7 +64,7 @@
         <button type="button" class="btn btn-primary" id="btn-estado" style="min-height:46px">Aplicar</button>
       </div>
 
-      <!-- Sprint 7: solo el Administrador reabre una solicitud cerrada -->
+      <!-- Sprint 7: solo el Equipo Técnico reabre una solicitud cerrada -->
       <button type="button" class="btn btn-secondary" id="btn-abrir-reapertura" hidden>Reabrir solicitud</button>
     </div>
 
@@ -116,7 +116,7 @@
 
     <!-- Sprint 6 · HU-06.1 y HU-06.2: dictamen de idoneidad.
          Lo llena js/dictamen.js. El formulario solo aparece para
-         Técnico y Administrador, y solo si la solicitud está En
+         el Equipo Técnico, y solo si la solicitud está En
          evaluación; el Juez ve el dictamen pero no puede emitirlo. -->
     <section class="bloque dictamen" id="bloque-dictamen" hidden>
       <h2>Dictamen de idoneidad</h2>
@@ -149,9 +149,9 @@
           <p class="etiqueta">Motivo del cambio de dictamen</p>
           <p id="dv-justificacion">—</p>
         </div>
-        <p class="dictamen-nota">Un dictamen emitido no se puede editar ni borrar. Solo el Administrador puede sustituirlo por otro, con justificación, y el anterior queda en el historial.</p>
+        <p class="dictamen-nota">Un dictamen emitido no se puede editar ni borrar. Solo el Equipo Técnico puede sustituirlo por otro, con justificación, y el anterior queda en el historial.</p>
 
-        <!-- HU-06.4: solo el Administrador ve esto (el servidor lo exige igual) -->
+        <!-- HU-06.4: solo el Equipo Técnico ve esto (el servidor lo exige igual) -->
         <div class="acciones-dictamen" id="cambio-acciones" hidden>
           <button type="button" class="btn btn-secondary" id="btn-abrir-cambio">Cambiar dictamen</button>
         </div>

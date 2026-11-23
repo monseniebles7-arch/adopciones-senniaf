@@ -23,7 +23,7 @@
 
   /* Adjuntar es escribir: solo los roles que pueden hacerlo ven el formulario.
      Quien bloquea de verdad es el backend, que responde 403. */
-  const puedeSubir = ['ADMINISTRADOR', 'TECNICO'].indexOf(sesion.rol) !== -1;
+  const puedeSubir = sesion.rol === 'TECNICO';
   if (!puedeSubir) form.hidden = true;
 
   const ICONO = {

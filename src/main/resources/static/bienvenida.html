@@ -39,14 +39,13 @@
   <div class="cards">
     <!-- data-roles: sesion.js muestra solo las tarjetas del rol del token.
          Es comodidad visual; quien bloquea de verdad es el backend. -->
-    <!-- HU-03: consultar lo registrado. Los tres roles pueden entrar;
-         el Juez solo lee, porque escribir vive en /api/tecnico/**. -->
-    <a class="card" href="expedientes.html" data-roles="ADMINISTRADOR,TECNICO,JUEZ" hidden>
+    <!-- Consulta operativa: Equipo Tecnico y Juez. El Administrador usa auditoria. -->
+    <a class="card" href="expedientes.html" data-roles="TECNICO,JUEZ" hidden>
       <strong>Consultar expedientes</strong>
       <span>Buscar un expediente, ver su ficha y su historial de cambios (HU-03).</span>
     </a>
 
-    <a class="card" href="registro_menor.html" data-roles="ADMINISTRADOR,TECNICO" hidden>
+    <a class="card" href="registro_menor.html" data-roles="TECNICO" hidden>
       <strong>Registrar menor</strong>
       <span>Crear el expediente digital de un menor (HU-02).</span>
     </a>
@@ -54,19 +53,19 @@
     <!-- HU-05: el otro lado del sistema. Hasta aquí todo giraba en
          torno al menor; esta es la primera pantalla sobre quien lo
          recibiría. -->
-    <a class="card" href="familias.html" data-roles="ADMINISTRADOR,TECNICO,JUEZ" hidden>
+    <a class="card" href="familias.html" data-roles="TECNICO,JUEZ" hidden>
       <strong>Familias solicitantes</strong>
       <span>Registrar y consultar las familias que solicitan adopción o acogimiento (HU-05).</span>
     </a>
 
-    <!-- HU-06.3 (Sprint 7): la lista de espera la consultan los tres roles. -->
-    <a class="card" href="lista_espera.html" data-roles="ADMINISTRADOR,TECNICO,JUEZ" hidden>
+    <!-- HU-06.3 (Sprint 7): lista de espera para Equipo Tecnico y Juez. -->
+    <a class="card" href="lista_espera.html" data-roles="TECNICO,JUEZ" hidden>
       <strong>Lista de espera</strong>
       <span>Familias idóneas en el orden en que esperan su turno (HU-06.3).</span>
     </a>
 
     <!-- Sprint 8 (decisión del PO): expedientes que se cierran solos. -->
-    <a class="card" href="cierres_automaticos.html" data-roles="ADMINISTRADOR,TECNICO" hidden>
+    <a class="card" href="cierres_automaticos.html" data-roles="TECNICO" hidden>
       <strong>Cierres automáticos</strong>
       <span>Expedientes en etapa final por cerrarse y los que cerró el sistema.</span>
     </a>
@@ -75,6 +74,13 @@
       <strong>Crear usuario</strong>
       <span>Dar acceso a una nueva persona autorizada (HU-01).</span>
     </a>
+
+    <a class="card" href="auditoria.html" data-roles="ADMINISTRADOR" hidden>
+      <strong>Auditoría del sistema</strong>
+      <span>Revisar quién consultó o realizó cambios en cada expediente o solicitud.</span>
+    </a>
+
+    <p style="color:var(--muted)" data-roles="ADMINISTRADOR" hidden>Como Administrador del sistema gestionas las cuentas y revisas la actividad registrada. No tienes acceso a las fichas ni a sus documentos.</p>
 
     <p style="color:var(--muted)" data-roles="JUEZ" hidden>Como Juez consultas expedientes, familias y la lista de espera, y actualizas la etapa jurídica del menor desde la ficha de su expediente (HU-07).</p>
   </div>

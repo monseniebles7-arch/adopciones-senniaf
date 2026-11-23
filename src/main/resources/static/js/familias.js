@@ -13,7 +13,7 @@
 
   /* Registrar es escribir: el botón solo aparece para quien puede.
      Quien bloquea de verdad es el backend, que responde 403. */
-  if (['ADMINISTRADOR', 'TECNICO'].indexOf(sesion.rol) !== -1) {
+  if (sesion.rol === 'TECNICO') {
     document.getElementById('btn-nueva').hidden = false;
   }
 

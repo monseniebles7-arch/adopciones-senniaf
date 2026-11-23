@@ -4,7 +4,7 @@
    El número del expediente llega en la URL: ?n=EXP-2026-0001
    ===================================================================== */
 (() => {
-  const sesion = Sesion.exigir();          // los tres roles pueden consultar
+  const sesion = Sesion.exigir();          // el backend limita lectura a Tecnico/Juez
   if (!sesion) return;
   Sesion.pintarBarra();
 
@@ -22,7 +22,7 @@
     ESTADO_JURIDICO: 'Etapa jurídica'          // Sprint 8 · HU-07.2
   };
   const ETIQUETA_ROL = {
-    ADMINISTRADOR: 'Administrador', TECNICO: 'Técnico/Trabajador', JUEZ: 'Juez',
+    ADMINISTRADOR: 'Administrador del sistema', TECNICO: 'Equipo técnico', JUEZ: 'Juez',
     SISTEMA: 'automático'                      // Sprint 8: cierre automático
   };
 
@@ -93,7 +93,7 @@
     nota.hidden = true;
     if (e.fechaCierreAutomatico) {
       nota.textContent = 'Cerrado automáticamente el ' + e.fechaCierreAutomatico.slice(0, 16) +
-        ' tras ' + cierre.plazoDias + ' días sin actividad en etapa final. Si no debía cerrarse, el Administrador puede reabrirlo.';
+        ' tras ' + cierre.plazoDias + ' días sin actividad en etapa final. Si no debía cerrarse, el Equipo Técnico puede reabrirlo.';
       nota.className = 'nota-cierre cerrado';
       nota.hidden = false;
     } else if (cierre.fechaLimite) {
@@ -143,14 +143,14 @@
     dato(salud, 'Pueblo indígena', e.puebloIndigena);
 
     /* Cambiar estado: solo quienes pueden escribir y si no está cerrado */
-    if (['ADMINISTRADOR', 'TECNICO'].indexOf(sesion.rol) !== -1 && e.estado !== 'CERRADO') {
+    if (sesion.rol === 'TECNICO' && e.estado !== 'CERRADO') {
       const caja = document.getElementById('acciones-estado');
       document.getElementById('nuevo-estado').value = e.estado;
       caja.hidden = false;
     }
-    /* Sprint 8: un expediente cerrado solo lo reabre el Administrador */
+    /* Sprint 8: un expediente cerrado lo reabre el Equipo Técnico */
     document.getElementById('btn-abrir-reapertura').hidden =
-      !(sesion.rol === 'ADMINISTRADOR' && e.estado === 'CERRADO');
+      !(sesion.rol === 'TECNICO' && e.estado === 'CERRADO');
 
     contenido.hidden = false;
     // etapa-juridica.js arma el bloque del Juez con estos mismos datos.

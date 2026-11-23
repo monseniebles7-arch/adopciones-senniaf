@@ -4,7 +4,7 @@
    Espera a que expediente-detalle.js termine de cargar la ficha (evento
    "expediente:cargado") y arma:
      · el bloque "Etapa jurídica", que solo ve el Juez;
-     · el formulario "Reabrir expediente", solo para el Administrador.
+     · el formulario "Reabrir expediente", solo para el Equipo Técnico.
 
    Las reglas las decide el servidor; aquí solo se ofrecen las opciones
    posibles y se avisa antes de enviar. Todo con textContent.
@@ -52,7 +52,7 @@
     form.hidden = true;
 
     if (e.estado === 'CERRADO') {
-      nota.textContent = 'El expediente está cerrado: el Administrador debe reabrirlo antes de cambiar la etapa jurídica.';
+      nota.textContent = 'El expediente está cerrado: el Equipo Técnico debe reabrirlo antes de cambiar la etapa jurídica.';
       nota.hidden = false;
       return;
     }
@@ -120,7 +120,7 @@
     if ($('form-etapa').querySelector('.invalid')) validarEtapa();
   }));
 
-  /* ------------------ Reapertura · Administrador ------------------ */
+  /* ------------------ Reapertura · Equipo Técnico ------------------ */
 
   const abrir = $('btn-abrir-reapertura');
   const formReap = $('form-reapertura');
@@ -146,11 +146,11 @@
     boton.disabled = true;
     boton.textContent = 'Reabriendo…';
     try {
-      const r = await Sesion.pedir('/api/admin/expedientes/' + encodeURIComponent(numero) + '/reapertura',
+      const r = await Sesion.pedir('/api/tecnico/expedientes/' + encodeURIComponent(numero) + '/reapertura',
         { method: 'POST', body: JSON.stringify({ motivo }) });
       if (r.ok) { location.reload(); return; }
       const detalle = await r.json().catch(() => ({}));
-      if (r.status === 403) fallar('Solo el Administrador puede reabrir un expediente.');
+      if (r.status === 403) fallar('Solo el Equipo Técnico puede reabrir un expediente.');
       else fallar(detalle.error || 'No se pudo reabrir el expediente (' + r.status + ').');
     } catch (err) {
       if (err.message !== 'sesion') fallar('No se pudo conectar con el servidor.');

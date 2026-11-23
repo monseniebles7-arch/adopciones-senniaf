@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Auditoría | SENNIAF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/expedientes.css">
+<link rel="stylesheet" href="css/auditoria.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand">SENNIAF <small>Sistema de gestión de adopciones</small></div>
+    <div class="user">
+      <strong id="sesion-nombre">—</strong>
+      <span><span id="sesion-rol">—</span> · <a href="#" id="btn-salir" style="color:inherit">Cerrar sesión</a></span>
+    </div>
+  </div>
+</header>
+
+<main class="page auditoria-page">
+  <div class="page-head">
+    <div>
+      <h1>Auditoría del sistema</h1>
+      <p>Actividad registrada sobre expedientes y solicitudes: consultas, creaciones y cambios.</p>
+    </div>
+    <a class="btn btn-secondary" href="bienvenida.html">Volver al inicio</a>
+  </div>
+
+  <div class="banner banner-info" role="note">
+    El registro muestra usuario, rol, fecha, tipo de acción y número del registro. No presenta datos personales ni el contenido de los documentos.
+  </div>
+
+  <form class="filtros" id="filtros-auditoria" autocomplete="off">
+    <div class="field">
+      <label for="usuario">Usuario</label>
+      <input id="usuario" name="usuario" type="search" maxlength="60" placeholder="Nombre de usuario">
+    </div>
+    <div class="field">
+      <label for="entidad">Tipo de registro</label>
+      <select id="entidad" name="entidad">
+        <option value="">Todos</option>
+        <option value="EXPEDIENTE">Expediente</option>
+        <option value="FAMILIA">Solicitud de familia</option>
+        <option value="USUARIO">Cuenta de usuario</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="tipo">Acción</label>
+      <select id="tipo" name="tipo">
+        <option value="">Todas</option>
+        <option value="CONSULTA">Consulta</option>
+        <option value="CREACION">Creación</option>
+        <option value="MODIFICACION">Modificación</option>
+        <option value="CAMBIO_ESTADO">Cambio de estado</option>
+        <option value="DOCUMENTO">Acceso o gestión de documento</option>
+        <option value="DICTAMEN">Dictamen</option>
+        <option value="ESTADO_JURIDICO">Etapa jurídica</option>
+        <option value="ALTA_USUARIO">Creación de cuenta</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="desde">Desde</label>
+      <input id="desde" name="desde" type="date">
+    </div>
+    <div class="field">
+      <label for="hasta">Hasta</label>
+      <input id="hasta" name="hasta" type="date">
+    </div>
+    <div class="acciones">
+      <button type="submit" class="btn btn-primary">Filtrar</button>
+      <button type="button" class="btn btn-secondary" id="limpiar">Limpiar</button>
+    </div>
+  </form>
+
+  <div class="banner banner-error" role="alert" id="error" hidden><span id="error-text"></span></div>
+  <p class="resumen-resultados" aria-live="polite"><span id="resumen">Cargando actividad…</span></p>
+
+  <div class="tabla-envoltura">
+    <table class="expedientes auditoria-table">
+      <caption style="position:absolute;left:-9999px">Registro de auditoría</caption>
+      <thead>
+        <tr>
+          <th scope="col">Fecha y hora</th>
+          <th scope="col">Usuario</th>
+          <th scope="col">Rol</th>
+          <th scope="col">Acción</th>
+          <th scope="col">Registro</th>
+          <th scope="col">Número</th>
+        </tr>
+      </thead>
+      <tbody id="filas"></tbody>
+    </table>
+    <div class="vacio" id="vacio" hidden><strong>No hay actividad que coincida con esos filtros.</strong></div>
+  </div>
+
+  <nav class="paginacion" aria-label="Páginas del registro de auditoría">
+    <button type="button" class="btn btn-secondary" id="anterior" disabled>Anterior</button>
+    <span id="pagina-label">Página 1</span>
+    <button type="button" class="btn btn-secondary" id="siguiente" disabled>Siguiente</button>
+  </nav>
+</main>
+<script src="js/sesion.js"></script>
+<script src="js/auditoria.js"></script>
+<script src="js/volver-arriba.js"></script>
+</body>
+</html>

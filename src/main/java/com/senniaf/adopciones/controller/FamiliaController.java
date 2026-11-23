@@ -23,7 +23,7 @@ import java.util.Optional;
  * Operaciones que ESCRIBEN sobre la familia solicitante (HU-05).
  *
  * Cuelga de /api/tecnico/**, asi que SecurityConfig solo deja pasar a
- * ADMINISTRADOR y TECNICO: un JUEZ recibe 403 y quien no manda token
+ * TECNICO: Administrador y Juez reciben 403 y quien no manda token
  * recibe 401. Las consultas van en ConsultaFamiliaController.
  */
 @RestController

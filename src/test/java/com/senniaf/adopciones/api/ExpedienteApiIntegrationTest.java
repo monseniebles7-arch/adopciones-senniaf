@@ -148,11 +148,11 @@ class ExpedienteApiIntegrationTest {
     }
 
     @Test
-    @DisplayName("HU-03: los tres roles consultan la ficha, queda la consulta en el historial; inexistente 404")
+    @DisplayName("HU-03: Tecnico y Juez consultan la ficha; Administrador no accede a fichas")
     void consultarFicha() throws Exception {
         String numero = crearExpediente();
         enviar("GET", "/api/expedientes/" + numero, juez(), null).andExpect(status().isOk());
-        enviar("GET", "/api/expedientes/" + numero, admin(), null).andExpect(status().isOk());
+        enviar("GET", "/api/expedientes/" + numero, admin(), null).andExpect(status().isForbidden());
         enviar("GET", "/api/expedientes/EXP-1999-9999", tecnico(), null).andExpect(status().isNotFound());
         enviar("GET", "/api/expedientes/" + numero + "/historial", tecnico(), null)
                 .andExpect(status().isOk())
@@ -263,22 +263,22 @@ class ExpedienteApiIntegrationTest {
     // ------------------------------------------- reapertura y cierres (PO)
 
     @Test
-    @DisplayName("Decisiones del PO: con el expediente cerrado el Juez no cambia la etapa; solo el Administrador reabre")
+    @DisplayName("Con el expediente cerrado el Juez no cambia la etapa; solo el Equipo Tecnico reabre")
     void cerradoYReapertura() throws Exception {
         String numero = crearExpediente();
-        String reapertura = "/api/admin/expedientes/" + numero + "/reapertura";
+        String reapertura = "/api/tecnico/expedientes/" + numero + "/reapertura";
         enviar("PATCH", "/api/tecnico/expedientes/" + numero + "/estado", tecnico(), Map.of("estado", "CERRADO"))
                 .andExpect(status().isOk());
 
         etapa(numero, juez(), "EN_PROCESO_JUDICIAL", OBSERVACION).andExpect(status().isConflict());
         enviar("PATCH", "/api/tecnico/expedientes/" + numero + "/estado", tecnico(), Map.of("estado", "EN_REVISION"))
                 .andExpect(status().isConflict());
-        enviar("POST", reapertura, tecnico(), Map.of("motivo", MOTIVO)).andExpect(status().isForbidden());
-        enviar("POST", reapertura, admin(), Map.of("motivo", "Corto")).andExpect(status().isBadRequest());
-        enviar("POST", reapertura, admin(), Map.of("motivo", MOTIVO))
+        enviar("POST", reapertura, admin(), Map.of("motivo", MOTIVO)).andExpect(status().isForbidden());
+        enviar("POST", reapertura, tecnico(), Map.of("motivo", "Corto")).andExpect(status().isBadRequest());
+        enviar("POST", reapertura, tecnico(), Map.of("motivo", MOTIVO))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.estado").value("EN_REVISION"));
-        enviar("POST", reapertura, admin(), Map.of("motivo", MOTIVO)).andExpect(status().isConflict());
+        enviar("POST", reapertura, tecnico(), Map.of("motivo", MOTIVO)).andExpect(status().isConflict());
     }
 
     @Test

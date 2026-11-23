@@ -4,12 +4,12 @@
    token de la sesión; quien decide qué se puede ver es el backend.
    ===================================================================== */
 (() => {
-  const sesion = Sesion.exigir();          // los tres roles pueden consultar
+  const sesion = Sesion.exigir();          // el backend limita lectura a Tecnico/Juez
   if (!sesion) return;
   Sesion.pintarBarra();
 
   /* Registrar menor solo lo ven quienes pueden escribir */
-  if (['ADMINISTRADOR', 'TECNICO'].indexOf(sesion.rol) !== -1) {
+  if (sesion.rol === 'TECNICO') {
     document.getElementById('btn-nuevo').hidden = false;
   }
 

@@ -2,8 +2,16 @@
 
 **Sprint 1 — Acceso seguro y control de roles (HU-01, 5 SP)**
 
-Backend en Java (Spring Boot) que implementa el login con autenticación
-JWT y control de acceso basado en roles (Administrador, Técnico y Juez).
+Backend en Java (Spring Boot) con autenticación JWT y permisos separados
+para Administrador del sistema, Equipo técnico y Juez.
+
+## Responsabilidades de los roles
+
+- **Administrador del sistema (TI / Seguridad):** crear y consultar cuentas de usuario y revisar la auditoría de casos y cuentas. No accede a fichas ni modifica casos.
+- **Equipo técnico de adopciones:** registra y actualiza expedientes y familias, gestiona documentos y dictámenes técnicos, y realiza reaperturas justificadas.
+- **Juez:** consulta los casos y actualiza la etapa jurídica.
+
+El Administrador no hereda los permisos del Equipo técnico. La auditoría registra consultas, cambios y creación de cuentas, y muestra solo metadatos. Las alertas automáticas, permisos granulares y gestión de respaldos aún requieren desarrollo adicional.
 
 ## Tecnologías
 
@@ -68,8 +76,9 @@ Respuesta:
 Enviar el token recibido en el header `Authorization: Bearer <token>`.
 
 - `GET /api/admin/ping` → solo rol `ADMINISTRADOR`
-- `GET /api/tecnico/ping` → roles `ADMINISTRADOR` o `TECNICO`
+- `GET /api/tecnico/ping` → solo rol `TECNICO`
 - `GET /api/juez/ping` → solo rol `JUEZ`
+- `GET /api/admin/auditoria` → solo `ADMINISTRADOR`; filtros opcionales `usuario`, `tipo`, `entidad`, `desde` y `hasta`, con paginación.
 
 Un usuario sin el rol correcto recibe `403 Forbidden`; sin token o con
 un token inválido/expirado recibe `401 Unauthorized`.

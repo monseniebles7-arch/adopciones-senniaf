@@ -171,11 +171,11 @@ class FamiliaApiIntegrationTest {
     }
 
     @Test
-    @DisplayName("HU-05: los tres roles consultan la ficha; un numero inexistente responde 404")
+    @DisplayName("HU-05: Tecnico y Juez consultan la ficha; Administrador no accede a fichas")
     void consultarFicha() throws Exception {
         String numero = registrarFamilia();
         enviar("GET", "/api/familias/" + numero, juez(), null).andExpect(status().isOk());
-        enviar("GET", "/api/familias/" + numero, admin(), null).andExpect(status().isOk());
+        enviar("GET", "/api/familias/" + numero, admin(), null).andExpect(status().isForbidden());
         enviar("GET", "/api/familias/FAM-1999-9999", tecnico(), null).andExpect(status().isNotFound());
     }
 
@@ -210,11 +210,11 @@ class FamiliaApiIntegrationTest {
     }
 
     @Test
-    @DisplayName("Sprint 7: con dictamen solo se puede cerrar; Idonea no se elige a mano; solo el Administrador reabre")
+    @DisplayName("Sprint 7: con dictamen solo se puede cerrar; Idonea no se elige a mano; solo el Equipo Tecnico reabre")
     void estadosConDictamenYReapertura() throws Exception {
         String numero = registrarFamilia();
         String estado = "/api/tecnico/familias/" + numero + "/estado";
-        String reapertura = "/api/admin/familias/" + numero + "/reapertura";
+        String reapertura = "/api/tecnico/familias/" + numero + "/reapertura";
         String motivo = "La familia presento una apelacion con documentos nuevos.";
 
         enviar("PATCH", estado, tecnico(), Map.of("estado", "IDONEA")).andExpect(status().isBadRequest());
@@ -225,29 +225,29 @@ class FamiliaApiIntegrationTest {
         enviar("PATCH", estado, tecnico(), Map.of("estado", "CERRADA")).andExpect(status().isOk());
         enviar("PATCH", estado, tecnico(), Map.of("estado", "EN_EVALUACION")).andExpect(status().isConflict());
 
-        enviar("POST", reapertura, tecnico(), Map.of("motivo", motivo)).andExpect(status().isForbidden());
-        enviar("POST", reapertura, admin(), Map.of("motivo", "Corto")).andExpect(status().isBadRequest());
-        enviar("POST", reapertura, admin(), Map.of("motivo", motivo))
+        enviar("POST", reapertura, admin(), Map.of("motivo", motivo)).andExpect(status().isForbidden());
+        enviar("POST", reapertura, tecnico(), Map.of("motivo", "Corto")).andExpect(status().isBadRequest());
+        enviar("POST", reapertura, tecnico(), Map.of("motivo", motivo))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.estado").value("IDONEA"));
-        enviar("POST", reapertura, admin(), Map.of("motivo", motivo)).andExpect(status().isConflict());
+        enviar("POST", reapertura, tecnico(), Map.of("motivo", motivo)).andExpect(status().isConflict());
     }
 
     // ------------------------------------------ cambio de dictamen (HU-06.4)
 
     @Test
-    @DisplayName("HU-06.4: solo el Administrador cambia el dictamen; Tecnico y Juez reciben 403")
-    void cambioSoloAdministrador() throws Exception {
+    @DisplayName("HU-06.4: solo el Equipo Tecnico cambia el dictamen; Administrador y Juez reciben 403")
+    void cambioSoloEquipoTecnico() throws Exception {
         String numero = registrarFamilia();
         pasarAEvaluacion(numero);
         emitir(numero, "NO_IDONEA");
-        String ruta = "/api/admin/familias/" + numero + "/dictamen/cambio";
+        String ruta = "/api/tecnico/familias/" + numero + "/dictamen/cambio";
         Map<String, Object> cuerpo = Map.of("resultado", "IDONEA", "observacion", "Cumple tras la reevaluacion.",
                                             "justificacion", JUSTIFICACION);
 
-        enviar("POST", ruta, tecnico(), cuerpo).andExpect(status().isForbidden());
+        enviar("POST", ruta, admin(), cuerpo).andExpect(status().isForbidden());
         enviar("POST", ruta, juez(), cuerpo).andExpect(status().isForbidden());
-        enviar("POST", ruta, admin(), cuerpo).andExpect(status().isCreated())
+        enviar("POST", ruta, tecnico(), cuerpo).andExpect(status().isCreated())
                 .andExpect(jsonPath("$.resultado").value("IDONEA"))
                 .andExpect(jsonPath("$.justificacionCambio").value(JUSTIFICACION));
     }
@@ -258,7 +258,7 @@ class FamiliaApiIntegrationTest {
         String numero = registrarFamilia();
         pasarAEvaluacion(numero);
         emitir(numero, "NO_IDONEA");
-        enviar("POST", "/api/admin/familias/" + numero + "/dictamen/cambio", admin(),
+        enviar("POST", "/api/tecnico/familias/" + numero + "/dictamen/cambio", tecnico(),
                 Map.of("resultado", "IDONEA", "observacion", "Cumple tras la reevaluacion."))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.campos", hasItem("justificacion")));
@@ -270,7 +270,7 @@ class FamiliaApiIntegrationTest {
         String numero = registrarFamilia();
         pasarAEvaluacion(numero);
         emitir(numero, "NO_IDONEA");
-        enviar("POST", "/api/admin/familias/" + numero + "/dictamen/cambio", admin(),
+        enviar("POST", "/api/tecnico/familias/" + numero + "/dictamen/cambio", tecnico(),
                 Map.of("resultado", "IDONEA", "observacion", "Cumple tras la reevaluacion.",
                        "justificacion", JUSTIFICACION))
                 .andExpect(status().isCreated());
@@ -310,7 +310,7 @@ class FamiliaApiIntegrationTest {
         String numero = registrarFamilia();
         pasarAEvaluacion(numero);
         emitir(numero, "IDONEA");
-        enviar("POST", "/api/admin/familias/" + numero + "/dictamen/cambio", admin(),
+        enviar("POST", "/api/tecnico/familias/" + numero + "/dictamen/cambio", tecnico(),
                 Map.of("resultado", "NO_IDONEA",
                        "observacion", "Se detecto que la vivienda no cumple con los requisitos minimos.",
                        "justificacion", JUSTIFICACION))

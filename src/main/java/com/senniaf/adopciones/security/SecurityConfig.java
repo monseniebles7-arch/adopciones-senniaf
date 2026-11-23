@@ -78,8 +78,13 @@ public class SecurityConfig {
                         // el Sprint 11 junto con el paso de los secretos a variables de entorno.
                         .requestMatchers("/api/auth/**", "/h2-console/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMINISTRADOR")
-                        .requestMatchers("/api/tecnico/**").hasAnyRole("ADMINISTRADOR", "TECNICO")
+                        .requestMatchers("/api/tecnico/**").hasRole("TECNICO")
                         .requestMatchers("/api/juez/**").hasRole("JUEZ")
+                        // El acceso a expedientes y familias corresponde al Equipo Tecnico y al Juez.
+                        // El Administrador consulta metadatos de auditoria, no fichas ni documentos.
+                        .requestMatchers("/api/expedientes", "/api/expedientes/**",
+                                         "/api/familias", "/api/familias/**")
+                        .hasAnyRole("TECNICO", "JUEZ")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

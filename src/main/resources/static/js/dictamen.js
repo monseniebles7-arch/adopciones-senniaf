@@ -5,7 +5,7 @@
    Sprint 7 agrega:
      · la posición de la familia en la lista de espera;
      · el historial de dictámenes, con el periodo de cada uno;
-     · el formulario para cambiar el dictamen, solo para el Administrador.
+     · el formulario para cambiar el dictamen, solo para el Equipo Técnico.
 
    Espera a que familia-detalle.js termine de cargar la ficha (evento
    "familia:cargada") y usa esos datos: así sabe el estado del trámite
@@ -13,7 +13,7 @@
 
    Lo que se muestra depende de tres cosas:
      · ¿ya hay dictamen?            → se muestra, en solo lectura.
-     · ¿el rol puede escribir?      → Técnico y Administrador sí, Juez no.
+     · ¿el rol puede escribir?      → Equipo Técnico sí, Administrador/Juez no.
      · ¿la solicitud está En evaluación? → solo entonces aparece el formulario.
 
    Todo con textContent: la observación la escribió una persona y no es
@@ -33,7 +33,7 @@
   const observacion = $('observacion');
   const contador = $('contador-observacion');
 
-  const ROL = { ADMINISTRADOR: 'Administrador', TECNICO: 'Técnico', JUEZ: 'Juez' };
+  const ROL = { ADMINISTRADOR: 'Administrador del sistema', TECNICO: 'Equipo técnico', JUEZ: 'Juez' };
 
   function fallar(msg) {
     textoBanner.textContent = msg;
@@ -204,7 +204,7 @@
   }
 
   function prepararCambio(familia, dictamen) {
-    if (Sesion.datos().rol !== 'ADMINISTRADOR') return;
+    if (Sesion.datos().rol !== 'TECNICO') return;
     if (familia.estado === 'CERRADA') { $('cambio-cerrada').hidden = false; return; }   // se reabre arriba
     resultadoVigente = dictamen.resultado;
     // La opción igual a la vigente no tiene sentido: se deshabilita.
@@ -241,7 +241,7 @@
     boton.disabled = true;
     boton.textContent = 'Guardando…';
     try {
-      const r = await Sesion.pedir('/api/admin/familias/' + encodeURIComponent(numero) + '/dictamen/cambio', {
+      const r = await Sesion.pedir('/api/tecnico/familias/' + encodeURIComponent(numero) + '/dictamen/cambio', {
         method: 'POST',
         body: JSON.stringify({
           resultado: resultadoCambio(),
@@ -252,7 +252,7 @@
       if (r.status === 201) { location.reload(); return; }
 
       const detalle = await r.json().catch(() => ({}));
-      if (r.status === 403) fallar('Solo el Administrador puede cambiar un dictamen.');
+      if (r.status === 403) fallar('Solo el Equipo Técnico puede cambiar un dictamen.');
       else if (r.status === 400) {
         fallar(detalle.error || 'El cambio no cumple las reglas.');
         (detalle.campos || []).forEach(c => marcarCambio(c, detalle.error));
@@ -270,7 +270,7 @@
   async function iniciar(familia) {
     const sesion = Sesion.datos();
     if (!sesion) return;
-    const puedeEscribir = ['ADMINISTRADOR', 'TECNICO'].indexOf(sesion.rol) !== -1;
+    const puedeEscribir = sesion.rol === 'TECNICO';
     const numero = familia.numeroSolicitud;
 
     try {

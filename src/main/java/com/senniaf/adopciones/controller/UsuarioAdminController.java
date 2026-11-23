@@ -3,6 +3,8 @@ package com.senniaf.adopciones.controller;
 import com.senniaf.adopciones.dto.CrearUsuarioRequest;
 import com.senniaf.adopciones.model.Rol;
 import com.senniaf.adopciones.model.Usuario;
+import com.senniaf.adopciones.model.EventoSistema;
+import com.senniaf.adopciones.repository.EventoSistemaRepository;
 import com.senniaf.adopciones.repository.UsuarioRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,14 +35,18 @@ import java.util.Map;
 public class UsuarioAdminController {
 
     private final UsuarioRepository usuarioRepository;
+    private final EventoSistemaRepository eventosSistema;
     private final PasswordEncoder passwordEncoder;
 
-    public UsuarioAdminController(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+    public UsuarioAdminController(UsuarioRepository usuarioRepository, EventoSistemaRepository eventosSistema,
+                                  PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
+        this.eventosSistema = eventosSistema;
         this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping
+    @Transactional
     public ResponseEntity<Map<String, Object>> crear(@Valid @RequestBody CrearUsuarioRequest peticion,
                                                       @AuthenticationPrincipal Usuario administrador) {
 
@@ -58,9 +65,8 @@ public class UsuarioAdminController {
         nuevo.setHabilitado(peticion.isHabilitado());
 
         usuarioRepository.save(nuevo);
-
-        // TODO (Sprint 2): registrar en auditoria que 'administrador'
-        // creo esta cuenta, con fecha y hora.
+        eventosSistema.save(new EventoSistema("ALTA_USUARIO", "USUARIO", nuevo.getUsername(),
+                administrador.getUsername(), administrador.getRol().name()));
 
         Map<String, Object> creado = new LinkedHashMap<>();
         creado.put("username", nuevo.getUsername());

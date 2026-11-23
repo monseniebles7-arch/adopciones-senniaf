@@ -74,6 +74,10 @@ class RoleAccessIntegrationTest {
         mockMvc.perform(get("/api/admin/ping")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/tecnico/ping")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
     }
 
     @Test

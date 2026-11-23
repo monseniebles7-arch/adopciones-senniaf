@@ -22,13 +22,14 @@ import java.util.Map;
 /**
  * Sprint 8: etapa juridica, reapertura y cierres automaticos.
  *
- * Mismo reparto de rutas de siempre, sin tocar SecurityConfig:
+ * Reparto de permisos actualizado para separar administracion del sistema
+ * y operaciones sobre expedientes:
  *   - Cambiar la etapa      -> /api/juez/**    : solo Juez (HU-07.2).
  *                              Tecnico y Administrador reciben 403.
- *   - Reabrir un expediente -> /api/admin/**   : solo Administrador.
- *   - Cierres automaticos   -> /api/tecnico/** : Administrador y Tecnico.
- * La etapa se lee en la ficha y en el listado, que ya estan abiertos a
- * los tres roles (HU-07.1).
+ *   - Reabrir un expediente -> /api/tecnico/** : Equipo Tecnico, con motivo.
+ *   - Cierres automaticos   -> /api/tecnico/** : Equipo Tecnico.
+ * La etapa se lee en la ficha y en el listado, disponibles para el Equipo
+ * Tecnico y el Juez (HU-07.1).
  */
 @RestController
 public class EstadoJuridicoController {
@@ -64,14 +65,14 @@ public class EstadoJuridicoController {
     }
 
     /**
-     * Decision del PO: solo el Administrador reabre. Cuerpo: {"motivo": "..."}
+     * Solo el Equipo Tecnico reabre. Cuerpo: {"motivo": "..."}
      *
      *   200  ficha con el expediente En revision
      *   400  motivo de menos de 20 caracteres
      *   404  no existe el expediente
      *   409  el expediente no esta cerrado
      */
-    @PostMapping("/api/admin/expedientes/{numero}/reapertura")
+    @PostMapping("/api/tecnico/expedientes/{numero}/reapertura")
     public ResponseEntity<Map<String, Object>> reabrir(@PathVariable String numero,
                                                         @RequestBody Map<String, Object> cuerpo,
                                                         @AuthenticationPrincipal Usuario usuario) {

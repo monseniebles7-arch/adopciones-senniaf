@@ -1,7 +1,7 @@
 /* =====================================================================
    SENNIAF · cierres-automaticos.js  (Sprint 8, decisión del PO)
    Dos listas: expedientes por cerrarse (del más urgente al menos) y los
-   que ya cerró el sistema. Solo Administrador y Técnico: el servidor
+   que ya cerró el sistema. Solo el Equipo Técnico: el servidor
    responde 403 al Juez. Todo con textContent.
    ===================================================================== */
 (() => {
@@ -51,7 +51,7 @@
   async function cargar() {
     try {
       const r = await Sesion.pedir('/api/tecnico/expedientes/cierres-automaticos');
-      if (r.status === 403) { fallar('Esta sección es para el Administrador y el Técnico.'); return; }
+      if (r.status === 403) { fallar('Esta sección es para el Equipo Técnico.'); return; }
       if (!r.ok) { fallar('No se pudo cargar la información (' + r.status + ').'); return; }
       const datos = await r.json();
 

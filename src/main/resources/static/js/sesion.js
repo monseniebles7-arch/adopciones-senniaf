@@ -30,8 +30,8 @@
   }
 
   const ETIQUETA = {
-    ADMINISTRADOR: 'Administrador',
-    TECNICO: 'Técnico/Trabajador',
+    ADMINISTRADOR: 'Administrador del sistema (TI / Seguridad)',
+    TECNICO: 'Equipo técnico de adopciones',
     JUEZ: 'Juez'
   };
 

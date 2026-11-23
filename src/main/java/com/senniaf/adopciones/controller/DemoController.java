@@ -15,12 +15,12 @@ public class DemoController {
 
     @GetMapping("/api/admin/ping")
     public Map<String, String> adminPing() {
-        return Map.of("mensaje", "Acceso permitido: rol Administrador");
+        return Map.of("mensaje", "Acceso permitido: Administrador del sistema");
     }
 
     @GetMapping("/api/tecnico/ping")
     public Map<String, String> tecnicoPing() {
-        return Map.of("mensaje", "Acceso permitido: rol Administrador o Tecnico");
+        return Map.of("mensaje", "Acceso permitido: Equipo Tecnico");
     }
 
     @GetMapping("/api/juez/ping")

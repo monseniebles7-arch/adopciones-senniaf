@@ -178,10 +178,10 @@
   // ------------------------------------------------------------------
   //  Cambio de estado (solo para quien puede escribir)
   // ------------------------------------------------------------------
-  /* Sprint 7 (decisión del PO): una solicitud cerrada solo la reabre el
-     Administrador, con motivo. Vuelve al estado de su dictamen. */
+  /* Una solicitud cerrada la reabre el Equipo Técnico, con motivo.
+     Vuelve al estado de su dictamen. */
   function prepararReapertura() {
-    if (sesion.rol !== 'ADMINISTRADOR') return;
+    if (sesion.rol !== 'TECNICO') return;
     const abrir = document.getElementById('btn-abrir-reapertura');
     const form = document.getElementById('form-reapertura');
     const motivo = document.getElementById('motivo-reapertura');
@@ -209,11 +209,11 @@
       boton.disabled = true;
       boton.textContent = 'Reabriendo…';
       try {
-        const r = await Sesion.pedir('/api/admin/familias/' + encodeURIComponent(numero) + '/reapertura',
+        const r = await Sesion.pedir('/api/tecnico/familias/' + encodeURIComponent(numero) + '/reapertura',
           { method: 'POST', body: JSON.stringify({ motivo: texto }) });
         if (r.ok) { location.reload(); return; }
         const detalle = await r.json().catch(() => ({}));
-        if (r.status === 403) fallar('Solo el Administrador puede reabrir una solicitud.');
+        if (r.status === 403) fallar('Solo el Equipo Técnico puede reabrir una solicitud.');
         else fallar(detalle.error || 'No se pudo reabrir la solicitud (' + r.status + ').');
       } catch (err) {
         if (err.message !== 'sesion') fallar('No se pudo conectar con el servidor.');
@@ -232,7 +232,7 @@
   }
 
   function prepararEstado(f) {
-    if (['ADMINISTRADOR', 'TECNICO'].indexOf(sesion.rol) === -1) return;
+    if (sesion.rol !== 'TECNICO') return;
     if (f.estado === 'CERRADA') { prepararReapertura(); return; }
 
     const caja = document.getElementById('control-estado');

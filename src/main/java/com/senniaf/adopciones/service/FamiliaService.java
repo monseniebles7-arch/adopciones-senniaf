@@ -180,8 +180,8 @@ public class FamiliaService {
     /**
      * Sprint 7: que cambios de estado se pueden hacer a mano (PATCH .../estado).
      * Devuelve el motivo del rechazo, o null si el cambio se permite.
-     *   - Una solicitud cerrada solo la reabre el Administrador, con
-     *     motivo (POST /api/admin/familias/{n}/reapertura).
+     *   - Una solicitud cerrada solo la reabre el Equipo Tecnico, con
+     *     motivo (POST /api/tecnico/familias/{n}/reapertura).
      *   - Una solicitud con dictamen solo puede cerrarse: su estado lo
      *     marca el dictamen, y cambiar el resultado es cambiar el dictamen.
      * Que IDONEA y NO_IDONEA no se elijan a mano lo revisa el controlador
@@ -189,11 +189,11 @@ public class FamiliaService {
      */
     public String rechazoCambioManual(FamiliaSolicitante f, EstadoFamilia nuevo) {
         if (f.getEstado() == EstadoFamilia.CERRADA && nuevo != EstadoFamilia.CERRADA) {
-            return "Una solicitud cerrada solo la puede reabrir el Administrador, indicando el motivo.";
+            return "Una solicitud cerrada solo la puede reabrir el Equipo Tecnico, indicando el motivo.";
         }
         if (f.getEstado().esDeDictamen() && nuevo != EstadoFamilia.CERRADA && nuevo != f.getEstado()) {
             return "La solicitud ya tiene dictamen: su estado lo marca el dictamen y solo puede cerrarse. "
-                    + "Para cambiar el resultado, el Administrador cambia el dictamen.";
+                    + "Para cambiar el resultado, el Equipo Tecnico cambia el dictamen.";
         }
         return null;
     }

@@ -8,7 +8,7 @@
    se salta con cualquier herramienta de línea de comandos.
    ===================================================================== */
 (() => {
-  const sesion = Sesion.exigir(['ADMINISTRADOR', 'TECNICO']);
+  const sesion = Sesion.exigir(['TECNICO']);
   if (!sesion) return;
   Sesion.pintarBarra();
 

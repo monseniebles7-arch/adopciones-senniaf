@@ -1,0 +1,19 @@
+.auditoria-page .filtros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  align-items: end;
+}
+
+.auditoria-page .acciones {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.auditoria-table td { vertical-align: top; }
+.auditoria-table .referencia { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+@media (max-width: 640px) {
+  .auditoria-table { min-width: 720px; }
+}

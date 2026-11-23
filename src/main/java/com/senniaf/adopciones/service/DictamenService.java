@@ -93,7 +93,7 @@ public class DictamenService {
                             + familia.getEstado().getEtiqueta() + ".", null);
         }
 
-        // Un dictamen no se sobrescribe. Para sustituirlo esta cambiar(), solo para el Administrador.
+        // Un dictamen no se sobrescribe. Para sustituirlo esta cambiar(), solo para el Equipo Tecnico.
         if (dictamenes.existsByFamiliaIdAndVigenteTrue(familia.getId())) {
             throw new DictamenRechazado(Motivo.YA_DICTAMINADA,
                     "La solicitud ya tiene un dictamen vigente y no se puede sobrescribir.", null);
@@ -131,7 +131,7 @@ public class DictamenService {
 
     /**
      * Sustituye el dictamen vigente por uno nuevo. Decisiones del PO:
-     *   - Solo el Administrador (lo garantiza la ruta /api/admin/**).
+     *   - Solo el Equipo Tecnico (lo garantiza la ruta /api/tecnico/**).
      *   - Si el nuevo resultado es IDONEA, la fecha de idoneidad es la del
      *     cambio, y el dictamen anterior conserva desde cuando y hasta
      *     cuando estuvo vigente.
@@ -214,7 +214,7 @@ public class DictamenService {
     static final int MINIMO_MOTIVO_REAPERTURA = MINIMO_JUSTIFICACION;
 
     /**
-     * Solo el Administrador (ruta /api/admin/**) reabre una solicitud
+     * Solo el Equipo Tecnico (ruta /api/tecnico/**) reabre una solicitud
      * cerrada, y siempre con motivo. Vuelve al estado que marca su dictamen
      * vigente; si nunca tuvo dictamen, vuelve a En evaluacion.
      */

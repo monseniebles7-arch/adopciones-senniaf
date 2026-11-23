@@ -31,7 +31,7 @@ import java.time.LocalDateTime;
  * Sprint 7: cada dictamen guarda su periodo de vigencia. Desde
  * fechaDictamen hasta fechaSustitucion (vacia mientras este vigente). Asi
  * queda registrado, por ejemplo, desde cuando y hasta cuando una familia
- * fue No idonea antes de que el Administrador cambiara el dictamen.
+ * fue No idonea antes de que el Equipo Tecnico cambiara el dictamen.
  */
 @Entity
 @Table(name = "dictamenes_idoneidad",

@@ -1,6 +1,7 @@
 package com.senniaf.adopciones.controller;
 
 import com.senniaf.adopciones.model.FamiliaSolicitante;
+import com.senniaf.adopciones.model.TipoEvento;
 import com.senniaf.adopciones.model.Usuario;
 import com.senniaf.adopciones.service.FamiliaService;
 import org.springframework.data.domain.Page;
@@ -22,8 +23,8 @@ import java.util.Optional;
  *
  * Cuelga de /api/familias, que NO esta en las reglas por rol de
  * SecurityConfig y por lo tanto cae en .anyRequest().authenticated():
- * los tres roles pueden consultar, pero nadie sin token. Mismo criterio
- * que /api/expedientes en el Sprint 3.
+ * Tecnico y Juez pueden consultar. El Administrador consulta solo el
+ * resumen de auditoria, sin acceso a las fichas.
  */
 @RestController
 @RequestMapping("/api/familias")
@@ -48,10 +49,13 @@ public class ConsultaFamiliaController {
                                        @RequestParam(required = false) String modalidad,
                                        @RequestParam(required = false) String provincia,
                                        @RequestParam(defaultValue = "0") int pagina,
-                                       @RequestParam(defaultValue = "10") int tamano) {
+                                       @RequestParam(defaultValue = "10") int tamano,
+                                       @AuthenticationPrincipal Usuario usuario) {
 
         Page<FamiliaSolicitante> resultado =
                 servicio.buscar(q, estado, modalidad, provincia, pagina, tamano);
+        resultado.getContent().forEach(f -> servicio.registrar(f, TipoEvento.CONSULTA,
+                "Consulta de la solicitud desde el listado.", usuario));
 
         List<Map<String, Object>> filas = resultado.getContent().stream()
                 .map(servicio::aResumen)

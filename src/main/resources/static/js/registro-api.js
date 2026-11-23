@@ -5,7 +5,7 @@
    en registro_menor.js, sin cambios.
    ===================================================================== */
 (() => {
-  const sesion = Sesion.exigir(['ADMINISTRADOR', 'TECNICO']);
+  const sesion = Sesion.exigir(['TECNICO']);
   if (!sesion) return;
   Sesion.pintarBarra();
 
