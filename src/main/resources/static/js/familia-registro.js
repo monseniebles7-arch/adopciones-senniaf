@@ -8,9 +8,18 @@
    se salta con cualquier herramienta de línea de comandos.
    ===================================================================== */
 (() => {
-  const sesion = Sesion.exigir(['TECNICO']);
-  if (!sesion) return;
-  Sesion.pintarBarra();
+  const publico = new URLSearchParams(location.search).get('publico') === '1';
+  const sesion = publico ? null : Sesion.exigir(['TECNICO']);
+  if (!publico && !sesion) return;
+  if (!publico) Sesion.pintarBarra();
+
+  if (publico) {
+    document.querySelector('.topbar .user').hidden = true;
+    document.querySelector('.topbar .brand').innerHTML = '<a href="index.html" style="color:inherit;text-decoration:none">SENNIAF</a><small>Solicitud de familia</small>';
+    document.querySelector('a.btn-secondary').href = 'index.html';
+    document.querySelector('a.btn-secondary').textContent = 'Volver al inicio';
+    document.querySelector('[name="declaracion_trazabilidad"]').closest('label').querySelector('span').innerHTML = 'Entiendo que el sistema registrará la fecha y hora de envío de esta solicitud. <span class="req" aria-hidden="true">*</span>';
+  }
 
   const form = document.getElementById('form-familia');
   const bannerOk = document.getElementById('banner-creada');
@@ -223,7 +232,7 @@
     form.querySelectorAll('input[type=checkbox]').forEach(c => { datos[c.name] = c.checked; });
 
     try {
-      const r = await Sesion.pedir('/api/tecnico/familias', {
+      const r = await Sesion.pedir(publico ? '/api/solicitudes/familias' : '/api/tecnico/familias', {
         method: 'POST',
         body: JSON.stringify(datos)
       });
@@ -245,7 +254,7 @@
       const familia = await r.json();
       /* Se recarga con el número para que el formulario quede limpio
          para el siguiente registro. */
-      location.href = 'familia_registro.html?creada=' + encodeURIComponent(familia.numeroSolicitud);
+      location.href = 'familia_registro.html?' + (publico ? 'publico=1&' : '') + 'creada=' + encodeURIComponent(familia.numeroSolicitud);
 
     } catch (err) {
       if (err.message !== 'sesion') fallar('No se pudo conectar con el servidor. La solicitud no se guardó.');

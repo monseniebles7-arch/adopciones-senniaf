@@ -76,7 +76,7 @@ public class SecurityConfig {
 
                         // La consola H2 queda abierta solo para desarrollo: se cierra en
                         // el Sprint 11 junto con el paso de los secretos a variables de entorno.
-                        .requestMatchers("/api/auth/**", "/h2-console/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/api/solicitudes/familias", "/h2-console/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMINISTRADOR")
                         .requestMatchers("/api/tecnico/**").hasRole("TECNICO")
                         .requestMatchers("/api/juez/**").hasRole("JUEZ")

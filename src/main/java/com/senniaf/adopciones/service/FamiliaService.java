@@ -76,7 +76,7 @@ public class FamiliaService {
 
         f.setEstado(EstadoFamilia.REGISTRADA);
         f.setFechaCreacion(LocalDateTime.now());
-        f.setCreadoPor(usuario.getUsername());
+        f.setCreadoPor(usuario == null ? "AUTORREGISTRO" : usuario.getUsername());
 
         // Igual que el expediente: se guarda primero para que la base
         // asigne el id, y con ese id se arma el numero visible.
@@ -216,7 +216,8 @@ public class FamiliaService {
     @Transactional
     public void registrar(FamiliaSolicitante f, TipoEvento tipo, String descripcion, Usuario usuario) {
         eventos.save(new EventoFamilia(f, tipo, descripcion,
-                usuario.getUsername(), usuario.getRol().name()));
+                usuario == null ? "Familia solicitante" : usuario.getUsername(),
+                usuario == null ? "PUBLICO" : usuario.getRol().name()));
     }
 
     /** Para ajustes que hace el sistema en nombre de quien tomo la decision original. */
