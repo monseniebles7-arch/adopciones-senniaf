@@ -94,7 +94,7 @@
     <!-- ============ Sprint 8 · HU-07.2 · Etapa jurídica (solo Juez) ============ -->
     <section class="bloque etapa-juridica" id="bloque-etapa" aria-labelledby="t-etapa" hidden>
       <h2 id="t-etapa">Etapa jurídica</h2>
-      <p class="hint">Solo avanza: En protección → En proceso judicial → Declarado adoptable o Reintegrado; Declarado adoptable → Adoptado. El cambio queda en el historial.</p>
+      <p class="hint">Solo avanza: En protección → En proceso judicial → Declarado adoptable o Reintegrado; Declarado adoptable → Adoptado. Declarar adoptable exige la resolución judicial. El cambio queda en el historial jurídico.</p>
       <p class="nota-etapa" id="etapa-nota" hidden></p>
 
       <form id="form-etapa" novalidate hidden>
@@ -109,10 +109,60 @@
           <textarea id="obs-etapa" maxlength="1000" aria-describedby="obs-hint"></textarea>
           <p class="error" id="e-observacion"></p>
         </div>
+
+        <!-- Sprint 9 · HU-07.3: sin resolución judicial no hay Declarado adoptable -->
+        <fieldset class="resolucion" id="bloque-resolucion" hidden>
+          <legend>Resolución judicial</legend>
+          <p class="hint">Obligatoria para declarar adoptable al menor. El documento se guarda cifrado en el expediente.</p>
+          <div class="field">
+            <label for="res-numero">N.º de resolución <span class="req" aria-hidden="true">*</span></label>
+            <input type="text" id="res-numero" maxlength="60" autocomplete="off">
+            <p class="error" id="e-resolucion_numero"></p>
+          </div>
+          <div class="field">
+            <label for="res-fecha">Fecha de la resolución <span class="req" aria-hidden="true">*</span></label>
+            <input type="date" id="res-fecha">
+            <p class="error" id="e-resolucion_fecha"></p>
+          </div>
+          <div class="field">
+            <label for="res-juzgado">Juzgado que la emitió <span class="req" aria-hidden="true">*</span></label>
+            <input type="text" id="res-juzgado" maxlength="150" autocomplete="off">
+            <p class="error" id="e-resolucion_juzgado"></p>
+          </div>
+          <div class="field">
+            <label for="res-archivo">Documento de la resolución <span class="req" aria-hidden="true">*</span></label>
+            <p class="hint" id="res-archivo-hint">PDF, JPG, PNG o DOCX.</p>
+            <input type="file" id="res-archivo" accept=".pdf,.jpg,.jpeg,.png,.docx" aria-describedby="res-archivo-hint">
+            <p class="error" id="e-archivo"></p>
+          </div>
+        </fieldset>
+
         <div class="acciones-form">
           <button type="submit" class="btn btn-primary" id="btn-etapa">Cambiar etapa</button>
         </div>
       </form>
+    </section>
+
+    <!-- ============ Sprint 9 · HU-08.1 · Familias compatibles (Equipo Técnico) ============ -->
+    <section class="bloque busqueda-familias" id="bloque-busqueda" aria-labelledby="t-busqueda" hidden>
+      <h2 id="t-busqueda">Familias compatibles</h2>
+      <p class="hint">Familias idóneas de la lista de espera que aceptan a un menor de esta edad, en el orden de la lista.</p>
+      <button type="button" class="btn btn-primary" id="btn-buscar-familias">Buscar familias compatibles</button>
+      <p class="nota-busqueda" id="busqueda-resumen" role="status" hidden></p>
+      <div class="tabla-envoltura" id="busqueda-tabla" hidden>
+        <table class="expedientes">
+          <thead>
+            <tr>
+              <th scope="col">Lugar en la lista</th>
+              <th scope="col">Solicitud</th>
+              <th scope="col">Familia</th>
+              <th scope="col">Edad que acepta</th>
+              <th scope="col">Idónea desde</th>
+            </tr>
+          </thead>
+          <tbody id="busqueda-filas"></tbody>
+        </table>
+      </div>
     </section>
 
     <section class="bloque" aria-labelledby="t1">
@@ -180,6 +230,13 @@
       <p class="sin-documentos" id="sin-documentos" hidden>Este expediente todavía no tiene documentos adjuntos.</p>
     </section>
 
+    <!-- ============ Sprint 9 · HU-07.4 · Historial jurídico ============ -->
+    <section class="bloque" id="bloque-historial-juridico" aria-labelledby="t-hj" hidden>
+      <h2 id="t-hj">Historial jurídico</h2>
+      <p class="hint">El recorrido legal del menor, del ingreso a la etapa actual. Las líneas no se pueden editar ni borrar.</p>
+      <ol class="linea-juridica" id="linea-juridica"></ol>
+    </section>
+
     <section class="bloque" aria-labelledby="t5">
       <h2 id="t5">Historial del expediente</h2>
       <p style="margin:-8px 0 16px;color:var(--muted);font-size:.9375rem">
@@ -193,6 +250,8 @@
 <script src="js/sesion.js"></script>
 <script src="js/expediente-detalle.js"></script>
 <script src="js/etapa-juridica.js"></script>
+<script src="js/historial-juridico.js"></script>
+<script src="js/busqueda-familias.js"></script>
 <script src="js/documentos.js"></script>
 <!-- Sprint 7: enlace "Volver al inicio" en el encabezado y botón "Volver arriba" -->
 <script src="js/volver-arriba.js"></script>

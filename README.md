@@ -1,9 +1,28 @@
 # Sistema de Gestión de Adopciones — SENNIAF
 
-**Sprint 1 — Acceso seguro y control de roles (HU-01, 5 SP)**
+**Versión hasta el Sprint 9** — HU-07.3 Resolución judicial obligatoria,
+HU-07.4 Historial jurídico y HU-08.1 Búsqueda de familias por edad (5 SP).
 
 Backend en Java (Spring Boot) con autenticación JWT y permisos separados
 para Administrador del sistema, Equipo técnico y Juez.
+
+## Sprint 9
+
+| Historia | Quién | Qué hace |
+|---|---|---|
+| **HU-07.3** Resolución judicial obligatoria | Juez | Para pasar a *Declarado adoptable* exige número, fecha (no futura), juzgado y documento de la resolución. El documento se guarda cifrado en el expediente (categoría *Resolución judicial*). Sin esos datos el cambio se rechaza y el error nombra lo que falta |
+| **HU-07.4** Historial jurídico | Equipo técnico y Juez | Línea de tiempo en la ficha, separada del historial general: del ingreso (*En protección*) a la etapa actual, con la observación, quién y cuándo, y la resolución con su documento. Los cambios hechos antes del Sprint 9 se muestran marcados como anteriores a la resolución obligatoria |
+| **HU-08.1** Búsqueda de familias por edad | Equipo técnico | En la ficha de un menor *Declarado adoptable*, botón *Buscar familias compatibles*: familias con dictamen *Idónea* cuya edad mínima y máxima incluyen la edad del menor, en el orden de la lista de espera. Las familias sin rango de edad se cuentan aparte |
+
+| Método y ruta | Roles | Respuestas |
+|---|---|---|
+| `POST /api/juez/expedientes/{numero}/declaracion-adoptabilidad` (multipart: `observacion`, `resolucion_numero`, `resolucion_fecha`, `resolucion_juzgado`, `archivo`) | Juez | 200 · 400 falta un dato o el archivo no es válido · 403 · 404 · 409 cerrado o no está *En proceso judicial* |
+| `PATCH /api/juez/expedientes/{numero}/estado-juridico` | Juez | Igual que antes, pero `DECLARADO_ADOPTABLE` ahora responde 400: usa la ruta anterior |
+| `GET /api/expedientes/{numero}/historial-juridico` | Equipo técnico y Juez | 200 · 403 Administrador · 404 |
+| `GET /api/tecnico/expedientes/{numero}/familias-compatibles` | Equipo técnico | 200 · 403 Juez y Administrador · 404 · 409 el menor no está *Declarado adoptable* o el expediente está cerrado |
+
+Tablas nuevas (se crean solas al arrancar, sin borrar `data`):
+`resoluciones_judiciales` y `cambios_etapa_juridica`.
 
 ## Responsabilidades de los roles
 
@@ -100,6 +119,9 @@ Pruebas incluidas:
 - `JwtServiceTest`: generación, validación y expiración de tokens.
 - `RoleAccessIntegrationTest`: prueba de extremo a extremo (login real +
   acceso/rechazo a rutas protegidas según el rol).
+- `Sprint9ApiIntegrationTest` (12 pruebas) y `EstadoJuridicoServiceTest`
+  (4 pruebas nuevas): resolución obligatoria, historial jurídico y
+  búsqueda por edad. En total, 96 pruebas.
 
 ## Integración continua (GitHub Actions)
 

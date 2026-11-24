@@ -6,7 +6,13 @@ import com.senniaf.adopciones.model.Expediente;
 import com.senniaf.adopciones.model.Rol;
 import com.senniaf.adopciones.model.TipoEvento;
 import com.senniaf.adopciones.model.Usuario;
+import com.senniaf.adopciones.model.CambioEtapaJuridica;
+import com.senniaf.adopciones.model.DocumentoExpediente;
+import com.senniaf.adopciones.model.ResolucionJudicial;
+import com.senniaf.adopciones.repository.CambioEtapaJuridicaRepository;
 import com.senniaf.adopciones.repository.ExpedienteRepository;
+import com.senniaf.adopciones.repository.ResolucionJudicialRepository;
+import org.springframework.mock.web.MockMultipartFile;
 import com.senniaf.adopciones.service.EstadoJuridicoService.Motivo;
 import com.senniaf.adopciones.service.EstadoJuridicoService.Rechazo;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,6 +52,10 @@ class EstadoJuridicoServiceTest {
 
     @Mock private ExpedienteRepository expedientes;
     @Mock private ExpedienteService expedienteService;
+    // Sprint 9: resolucion judicial (HU-07.3) e historial juridico (HU-07.4).
+    @Mock private DocumentoService documentos;
+    @Mock private ResolucionJudicialRepository resoluciones;
+    @Mock private CambioEtapaJuridicaRepository cambios;
     @InjectMocks private EstadoJuridicoService servicio;
 
     private Expediente expediente;
@@ -68,6 +78,87 @@ class EstadoJuridicoServiceTest {
 
     private Map<String, Object> cambio(String etapa, String observacion) {
         return Map.of("etapa", etapa, "observacion", observacion);
+    }
+
+    // ------------------------------------------------------------- HU-07.3
+
+    private Map<String, String> resolucionCompleta() {
+        Map<String, String> d = new java.util.HashMap<>();
+        d.put("observacion", OBSERVACION);
+        d.put("resolucion_numero", "RES-123-2026");
+        d.put("resolucion_fecha", "2026-11-10");
+        d.put("resolucion_juzgado", "Juzgado de Niñez y Adolescencia de Panamá");
+        return d;
+    }
+
+    private MockMultipartFile pdf() {
+        return new MockMultipartFile("archivo", "resolucion.pdf", "application/pdf",
+                "%PDF-1.4 prueba".getBytes(java.nio.charset.StandardCharsets.US_ASCII));
+    }
+
+    @Test
+    @DisplayName("HU-07.3: el cambio normal no puede pasar a Declarado adoptable sin resolucion")
+    void adoptableSinResolucionSeRechaza() {
+        expediente.setEstadoJuridico(EstadoJuridico.EN_PROCESO_JUDICIAL);
+        encontrado();
+
+        Rechazo r = assertThrows(Rechazo.class,
+                () -> servicio.cambiarEtapa(NUMERO, cambio("DECLARADO_ADOPTABLE", OBSERVACION), juez));
+
+        assertEquals(Motivo.DATOS_INVALIDOS, r.getMotivo());
+        assertTrue(r.getCampos().contains("archivo"));
+        assertEquals(EstadoJuridico.EN_PROCESO_JUDICIAL, expediente.getEstadoJuridico());
+        verify(expedientes, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("HU-07.3: si falta un dato de la resolucion, el error nombra cual falta y no guarda nada")
+    void resolucionIncompletaNombraElDato() {
+        expediente.setEstadoJuridico(EstadoJuridico.EN_PROCESO_JUDICIAL);
+        encontrado();
+        Map<String, String> datos = resolucionCompleta();
+        datos.put("resolucion_juzgado", "");
+        datos.put("resolucion_fecha", java.time.LocalDate.now().plusDays(3).toString());
+
+        Rechazo r = assertThrows(Rechazo.class, () -> servicio.declararAdoptable(NUMERO, datos, null, juez));
+
+        assertEquals(Motivo.DATOS_INVALIDOS, r.getMotivo());
+        assertEquals(java.util.List.of("resolucion_fecha", "resolucion_juzgado", "archivo"), r.getCampos());
+        assertTrue(r.getMessage().contains("el juzgado que la emitió"));
+        verify(documentos, never()).adjuntar(any(), any(), anyString(), any());
+        verify(resoluciones, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("HU-07.3: con la resolucion completa el menor queda Declarado adoptable y el cambio enlaza la resolucion")
+    void declaraAdoptableConResolucion() {
+        expediente.setEstadoJuridico(EstadoJuridico.EN_PROCESO_JUDICIAL);
+        encontrado();
+        when(documentos.adjuntar(eq(expediente), any(), eq("resolucion"), eq(juez)))
+                .thenReturn(org.mockito.Mockito.mock(DocumentoExpediente.class));
+        when(resoluciones.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        servicio.declararAdoptable(NUMERO, resolucionCompleta(), pdf(), juez);
+
+        assertEquals(EstadoJuridico.DECLARADO_ADOPTABLE, expediente.getEstadoJuridico());
+        verify(resoluciones).save(any(ResolucionJudicial.class));
+        verify(cambios).save(org.mockito.ArgumentMatchers.argThat((CambioEtapaJuridica c) ->
+                c.getEtapaNueva().equals("DECLARADO_ADOPTABLE") && c.getResolucion() != null
+                        && c.getResolucion().getNumeroResolucion().equals("RES-123-2026")));
+        verify(expedienteService).registrar(eq(expediente), eq(TipoEvento.ESTADO_JURIDICO),
+                contains("Resolución N.º RES-123-2026"), eq(juez));
+    }
+
+    @Test
+    @DisplayName("HU-07.3: solo se declara adoptable desde En proceso judicial")
+    void adoptableDesdeProteccionEsConflicto() {
+        encontrado();   // el expediente esta En proteccion
+
+        Rechazo r = assertThrows(Rechazo.class,
+                () -> servicio.declararAdoptable(NUMERO, resolucionCompleta(), pdf(), juez));
+
+        assertEquals(Motivo.CONFLICTO, r.getMotivo());
+        verify(documentos, never()).adjuntar(any(), any(), anyString(), any());
     }
 
     // ------------------------------------------------------------- HU-07.2

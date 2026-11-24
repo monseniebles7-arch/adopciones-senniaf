@@ -169,3 +169,41 @@ dl.datos dd.vacia { color: var(--muted); font-style: italic; }
 .etapa-juridica textarea, .reapertura textarea {
   font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; resize: vertical;
 }
+
+/* ===== Sprint 9 · HU-07.3 · Resolución judicial en el bloque del Juez ===== */
+.etapa-juridica fieldset.resolucion {
+  border: 1px solid var(--line); border-left: 5px solid #1F6F54; border-radius: 8px;
+  padding: 14px 16px; margin: 4px 0 16px; background: #F4FAF7;
+}
+.etapa-juridica fieldset.resolucion legend { font-weight: 700; padding: 0 6px; }
+.etapa-juridica fieldset.resolucion input[type="text"],
+.etapa-juridica fieldset.resolucion input[type="date"] {
+  font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; min-height: 46px;
+}
+
+/* ===== Sprint 9 · HU-07.4 · Historial jurídico (línea de tiempo) ===== */
+.linea-juridica { list-style: none; margin: 0; padding: 0 0 0 22px; border-left: 3px solid var(--line); }
+.linea-juridica li { position: relative; padding: 0 0 18px 14px; }
+.linea-juridica li:last-child { padding-bottom: 0; }
+.linea-juridica li::before {
+  content: ""; position: absolute; left: -31px; top: 4px; width: 14px; height: 14px;
+  border-radius: 50%; background: var(--surface); border: 3px solid var(--line);
+}
+.linea-juridica li.actual::before { border-color: #1F6F54; background: #1F6F54; }
+.linea-juridica p { margin: 0 0 4px; overflow-wrap: anywhere; }
+.linea-juridica .etapa-titulo { font-weight: 700; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.linea-juridica .firma { font-size: .8125rem; color: var(--muted); }
+.linea-juridica .resolucion-dato {
+  margin: 6px 0; padding: 8px 12px; border-radius: 8px; background: #F4FAF7; border: 1px solid #CFE6DA;
+}
+.linea-juridica .aviso-resolucion { color: #8A5A00; font-size: .9375rem; }
+.linea-juridica button.enlace {
+  background: none; border: 0; padding: 0; font: inherit; color: var(--blue); font-weight: 700;
+  cursor: pointer; text-decoration: underline;
+}
+
+/* ===== Sprint 9 · HU-08.1 · Familias compatibles ===== */
+.busqueda-familias .nota-busqueda { margin: 14px 0; font-weight: 700; }
+.busqueda-familias .tabla-envoltura { margin-top: 8px; }
+.etapa-juridica fieldset.resolucion .field.invalid input { border-color: #B3261E; }
+.busqueda-familias > .hint, #bloque-historial-juridico > .hint { margin: -6px 0 14px; color: var(--muted); font-size: .9375rem; }

@@ -115,11 +115,23 @@ class ExpedienteApiIntegrationTest {
                 Map.of("etapa", etapa, "observacion", observacion));
     }
 
-    /** Lleva un expediente hasta Adoptado. */
+    /**
+     * Lleva un expediente hasta Adoptado. Desde el Sprint 9 (HU-07.3) el paso
+     * a Declarado adoptable exige la resolucion judicial con su documento.
+     */
     private void llevarAAdoptado(String numero) throws Exception {
         String j = juez();
         etapa(numero, j, "EN_PROCESO_JUDICIAL", OBSERVACION).andExpect(status().isOk());
-        etapa(numero, j, "DECLARADO_ADOPTABLE", OBSERVACION).andExpect(status().isOk());
+        MockMultipartFile resolucion = new MockMultipartFile("archivo", "resolucion.pdf", "application/pdf",
+                "%PDF-1.4 resolucion de prueba".getBytes(StandardCharsets.US_ASCII));
+        mvc.perform(multipart("/api/juez/expedientes/" + numero + "/declaracion-adoptabilidad")
+                        .file(resolucion)
+                        .param("observacion", OBSERVACION)
+                        .param("resolucion_numero", "RES-" + numero)
+                        .param("resolucion_fecha", "2026-11-01")
+                        .param("resolucion_juzgado", "Juzgado de Niñez y Adolescencia de Panamá")
+                        .header("Authorization", j))
+                .andExpect(status().isOk());
         etapa(numero, j, "ADOPTADO", OBSERVACION).andExpect(status().isOk());
     }
 

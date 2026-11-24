@@ -196,10 +196,13 @@ public class ExpedienteService {
         return e;
     }
 
-    /** Punto de entrada para que otros modulos (HU-04) escriban en el historial. */
+    /**
+     * Punto de entrada para que otros modulos (HU-04) escriban en el historial.
+     * Devuelve la linea guardada: el historial juridico (Sprint 9) la enlaza.
+     */
     @Transactional
-    public void registrar(Expediente e, TipoEvento tipo, String descripcion, Usuario usuario) {
-        eventos.save(new EventoExpediente(e, tipo, descripcion,
+    public EventoExpediente registrar(Expediente e, TipoEvento tipo, String descripcion, Usuario usuario) {
+        return eventos.save(new EventoExpediente(e, tipo, descripcion,
                 usuario.getUsername(), usuario.getRol().name()));
     }
 

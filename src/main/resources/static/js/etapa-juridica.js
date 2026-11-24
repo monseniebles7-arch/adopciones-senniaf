@@ -33,7 +33,11 @@
   function marcar(campo, msg) {
     const salida = $('e-' + campo);
     if (salida) salida.textContent = msg || '';
-    const control = { etapa: 'nueva-etapa', observacion: 'obs-etapa', motivo: 'motivo-reapertura' }[campo];
+    const control = {
+      etapa: 'nueva-etapa', observacion: 'obs-etapa', motivo: 'motivo-reapertura',
+      resolucion_numero: 'res-numero', resolucion_fecha: 'res-fecha',
+      resolucion_juzgado: 'res-juzgado', archivo: 'res-archivo'
+    }[campo];
     const caja = control && $(control).closest('.field');
     if (caja) caja.classList.toggle('invalid', !!msg);
   }
@@ -76,8 +80,20 @@
       select.appendChild(o);
     });
     if ((e.siguientesEtapas || []).length === 1) select.value = e.siguientesEtapas[0];
+    // La fecha de la resolución no puede ser futura.
+    $('res-fecha').max = new Date().toISOString().slice(0, 10);
+    mostrarResolucion();
     form.hidden = false;
   }
+
+  /* Sprint 9 · HU-07.3: la resolución solo se pide para Declarado adoptable. */
+  const ADOPTABLE = 'DECLARADO_ADOPTABLE';
+  function mostrarResolucion() {
+    const pide = $('nueva-etapa').value === ADOPTABLE;
+    $('bloque-resolucion').hidden = !pide;
+    $('btn-etapa').textContent = pide ? 'Declarar adoptable' : 'Cambiar etapa';
+  }
+  $('nueva-etapa').addEventListener('change', mostrarResolucion);
 
   function validarEtapa() {
     let ok = true;
@@ -86,7 +102,35 @@
     if ($('obs-etapa').value.trim().length < MINIMO) {
       marcar('observacion', 'Explica el cambio en al menos ' + MINIMO + ' caracteres.'); ok = false;
     } else marcar('observacion', '');
+
+    if ($('nueva-etapa').value === ADOPTABLE) {
+      const revisar = (campo, falta, msg) => { marcar(campo, falta ? msg : ''); if (falta) ok = false; };
+      revisar('resolucion_numero', $('res-numero').value.trim().length < 3, 'Escribe el número de la resolución.');
+      const fecha = $('res-fecha').value;
+      revisar('resolucion_fecha', !fecha || fecha > $('res-fecha').max,
+        'Indica la fecha de la resolución; no puede ser futura.');
+      revisar('resolucion_juzgado', $('res-juzgado').value.trim().length < 3, 'Indica el juzgado que la emitió.');
+      revisar('archivo', !$('res-archivo').files.length, 'Adjunta el documento de la resolución.');
+    }
     return ok;
+  }
+
+  /* Declarado adoptable va con la resolución y su documento (multipart). */
+  function enviarCambio() {
+    const base = '/api/juez/expedientes/' + encodeURIComponent(numero);
+    if ($('nueva-etapa').value === ADOPTABLE) {
+      const datos = new FormData();
+      datos.append('observacion', $('obs-etapa').value.trim());
+      datos.append('resolucion_numero', $('res-numero').value.trim());
+      datos.append('resolucion_fecha', $('res-fecha').value);
+      datos.append('resolucion_juzgado', $('res-juzgado').value.trim());
+      datos.append('archivo', $('res-archivo').files[0]);
+      return Sesion.pedir(base + '/declaracion-adoptabilidad', { method: 'POST', body: datos });
+    }
+    return Sesion.pedir(base + '/estado-juridico', {
+      method: 'PATCH',
+      body: JSON.stringify({ etapa: $('nueva-etapa').value, observacion: $('obs-etapa').value.trim() })
+    });
   }
 
   $('form-etapa').addEventListener('submit', async ev => {
@@ -98,10 +142,7 @@
     boton.disabled = true;
     boton.textContent = 'Guardando…';
     try {
-      const r = await Sesion.pedir('/api/juez/expedientes/' + encodeURIComponent(numero) + '/estado-juridico', {
-        method: 'PATCH',
-        body: JSON.stringify({ etapa: $('nueva-etapa').value, observacion: $('obs-etapa').value.trim() })
-      });
+      const r = await enviarCambio();
       if (r.ok) { location.reload(); return; }
       const detalle = await r.json().catch(() => ({}));
       if (r.status === 403) fallar('Solo el Juez puede cambiar la etapa jurídica.');
@@ -113,10 +154,10 @@
       if (err.message !== 'sesion') fallar('No se pudo conectar con el servidor.');
     } finally {
       boton.disabled = false;
-      boton.textContent = 'Cambiar etapa';
+      mostrarResolucion();
     }
   });
-  ['nueva-etapa', 'obs-etapa'].forEach(id => $(id).addEventListener('input', () => {
+  ['nueva-etapa', 'obs-etapa', 'res-numero', 'res-fecha', 'res-juzgado', 'res-archivo'].forEach(id => $(id).addEventListener('input', () => {
     if ($('form-etapa').querySelector('.invalid')) validarEtapa();
   }));
 

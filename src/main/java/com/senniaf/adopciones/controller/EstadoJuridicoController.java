@@ -6,7 +6,9 @@ import com.senniaf.adopciones.service.CierreAutomaticoService;
 import com.senniaf.adopciones.service.EstadoJuridicoService;
 import com.senniaf.adopciones.service.EstadoJuridicoService.Rechazo;
 import com.senniaf.adopciones.service.ExpedienteService;
+import com.senniaf.adopciones.service.HistorialJuridicoService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,7 +16,9 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,12 +41,14 @@ public class EstadoJuridicoController {
     private final EstadoJuridicoService etapas;
     private final ExpedienteService expedientes;
     private final CierreAutomaticoService cierres;
+    private final HistorialJuridicoService historial;
 
     public EstadoJuridicoController(EstadoJuridicoService etapas, ExpedienteService expedientes,
-                                    CierreAutomaticoService cierres) {
+                                    CierreAutomaticoService cierres, HistorialJuridicoService historial) {
         this.etapas = etapas;
         this.expedientes = expedientes;
         this.cierres = cierres;
+        this.historial = historial;
     }
 
     /**
@@ -62,6 +68,50 @@ public class EstadoJuridicoController {
         } catch (Rechazo ex) {
             return rechazo(ex);
         }
+    }
+
+    /**
+     * HU-07.3 (Sprint 9). Pasa al menor a Declarado adoptable con la
+     * resolucion judicial. Formulario multipart: observacion,
+     * resolucion_numero, resolucion_fecha (AAAA-MM-DD), resolucion_juzgado
+     * y archivo (PDF, JPG, PNG o DOCX).
+     *
+     *   200  ficha con la etapa nueva
+     *   400  falta un dato de la resolucion o el archivo no es valido
+     *   404  no existe el expediente
+     *   409  expediente cerrado o el menor no esta En proceso judicial
+     */
+    @PostMapping(path = "/api/juez/expedientes/{numero}/declaracion-adoptabilidad",
+                 consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, Object>> declararAdoptable(
+            @PathVariable String numero,
+            @RequestParam(value = "observacion", required = false) String observacion,
+            @RequestParam(value = "resolucion_numero", required = false) String numeroResolucion,
+            @RequestParam(value = "resolucion_fecha", required = false) String fecha,
+            @RequestParam(value = "resolucion_juzgado", required = false) String juzgado,
+            @RequestParam(value = "archivo", required = false) MultipartFile archivo,
+            @AuthenticationPrincipal Usuario usuario) {
+        Map<String, String> datos = new HashMap<>();
+        datos.put("observacion", observacion);
+        datos.put("resolucion_numero", numeroResolucion);
+        datos.put("resolucion_fecha", fecha);
+        datos.put("resolucion_juzgado", juzgado);
+        try {
+            return ResponseEntity.ok(ficha(etapas.declararAdoptable(numero, datos, archivo, usuario)));
+        } catch (Rechazo ex) {
+            return rechazo(ex);
+        }
+    }
+
+    /**
+     * HU-07.4 (Sprint 9). Linea de tiempo juridica del menor, del ingreso al
+     * cambio mas reciente. Bajo /api/expedientes/**: Equipo Tecnico y Juez.
+     */
+    @GetMapping("/api/expedientes/{numero}/historial-juridico")
+    public ResponseEntity<Map<String, Object>> historialJuridico(@PathVariable String numero) {
+        return expedientes.porNumero(numero)
+                .map(e -> ResponseEntity.ok(historial.linea(e)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**
