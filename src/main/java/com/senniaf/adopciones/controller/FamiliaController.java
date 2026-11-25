@@ -49,10 +49,11 @@ public class FamiliaController {
         // Una misma persona no deberia tener dos solicitudes abiertas:
         // casi siempre es el mismo formulario enviado dos veces.
         String documento = String.valueOf(datos.getOrDefault("numero_documento", "")).trim();
-        if (servicio.documentoYaRegistrado(documento)) {
+        String documentoSegundo = String.valueOf(datos.getOrDefault("segundo_numero_documento", "")).trim();
+        if (servicio.documentosYaRegistrados(documento, documentoSegundo)) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(Map.of("error", "Ya existe una solicitud registrada con ese documento",
-                                 "campos", List.of("numero_documento")));
+                    .body(Map.of("error", "Ya existe una solicitud registrada con uno de esos documentos.",
+                                 "campos", List.of("numero_documento", "segundo_numero_documento")));
         }
 
         FamiliaSolicitante creada = servicio.crear(datos, usuario);

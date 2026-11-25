@@ -25,6 +25,19 @@
   const bannerOk = document.getElementById('banner-creada');
   const bannerError = document.getElementById('banner-error');
   const textoError = document.getElementById('banner-error-text');
+  let tokenFormulario = null;
+
+  async function renovarTokenFormulario() {
+    if (!publico) return;
+    tokenFormulario = null;
+    try {
+      const respuesta = await fetch('/api/solicitudes/familias/token', { cache: 'no-store' });
+      if (!respuesta.ok) return;
+      tokenFormulario = (await respuesta.json()).token || null;
+    } catch (err) {
+      tokenFormulario = null;
+    }
+  }
 
   /* Al volver tras registrar, con el número en la URL */
   const creada = new URLSearchParams(location.search).get('creada');
@@ -239,6 +252,15 @@
     const datos = {};
     new FormData(form).forEach((v, k) => { datos[k] = v; });
     form.querySelectorAll('input[type=checkbox]').forEach(c => { datos[c.name] = c.checked; });
+    if (publico) {
+      if (!tokenFormulario) {
+        fallar('No se pudo preparar el formulario protegido. Recarga la página e inténtalo nuevamente.');
+        boton.disabled = false;
+        boton.textContent = 'Registrar solicitud';
+        return;
+      }
+      datos.form_token = tokenFormulario;
+    }
 
     try {
       const r = await Sesion.pedir(publico ? '/api/solicitudes/familias' : '/api/tecnico/familias', {
@@ -246,16 +268,26 @@
         body: JSON.stringify(datos)
       });
 
+      if (!r.ok && publico) await renovarTokenFormulario();
       if (r.status === 403) { fallar('Tu rol no tiene permiso para registrar familias. La solicitud no se guardó.'); return; }
       if (r.status === 409) {
-        fallar('Ya existe una solicitud registrada con ese número de documento. Búscala en el listado antes de crear otra.');
-        marcar(form.numero_documento, 'Documento ya registrado.');
+        const detalle = await r.json().catch(() => ({}));
+        fallar(detalle.error || 'Ya existe una solicitud con uno de esos documentos. Contacta al equipo técnico para actualizarla.');
+        marcar(form.numero_documento, 'Documento ya registrado en otra solicitud.');
+        if (form.segundo_numero_documento && !form.segundo_numero_documento.disabled) {
+          marcar(form.segundo_numero_documento, 'Documento ya registrado en otra solicitud.');
+        }
+        return;
+      }
+      if (r.status === 429) {
+        const segundos = Number(r.headers.get('Retry-After')) || 0;
+        fallar('Se alcanzó el límite temporal de envíos desde esta conexión. Intenta nuevamente en ' + segundos + ' segundos.');
         return;
       }
       if (r.status === 400) {
         const detalle = await r.json().catch(() => ({}));
         const lista = (detalle.campos || []).join(', ');
-        fallar('El servidor rechazó los datos' + (lista ? ': ' + lista : '') + '.');
+        fallar(detalle.error || ('El servidor rechazó los datos' + (lista ? ': ' + lista : '') + '.'));
         return;
       }
       if (!r.ok) { fallar('El servidor respondió con un error (' + r.status + '). La solicitud no se guardó.'); return; }
@@ -272,10 +304,12 @@
       location.href = 'familia_registro.html?' + consulta.toString();
 
     } catch (err) {
+      await renovarTokenFormulario();
       if (err.message !== 'sesion') fallar('No se pudo conectar con el servidor. La solicitud no se guardó.');
     }
   }
 
   aplicarCondiciones();
   pintarEdad();
+  renovarTokenFormulario();
 })();

@@ -50,6 +50,17 @@ public interface FamiliaRepository extends JpaRepository<FamiliaSolicitante, Lon
 
     boolean existsByNumeroDocumento(String numeroDocumento);
 
+    @Query("""
+           SELECT COUNT(f) FROM FamiliaSolicitante f
+           WHERE (:doc1 IS NOT NULL AND (
+                    UPPER(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(f.numeroDocumento), ' ', ''), '-', ''), '.', ''), '/', '')) = :doc1
+                    OR UPPER(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(f.segundoNumeroDocumento), ' ', ''), '-', ''), '.', ''), '/', '')) = :doc1))
+              OR (:doc2 IS NOT NULL AND (
+                    UPPER(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(f.numeroDocumento), ' ', ''), '-', ''), '.', ''), '/', '')) = :doc2
+                    OR UPPER(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(f.segundoNumeroDocumento), ' ', ''), '-', ''), '.', ''), '/', '')) = :doc2))
+           """)
+    long contarPorDocumentosNormalizados(@Param("doc1") String doc1, @Param("doc2") String doc2);
+
     /**
      * Sprint 6 (HU-06.1). Trae la familia bloqueando su fila hasta que
      * termine la transaccion.

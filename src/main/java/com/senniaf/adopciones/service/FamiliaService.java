@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Comparator;
 import java.util.Objects;
+import java.util.Locale;
 
 /**
  * Logica de la familia solicitante: registrar, consultar, modificar y
@@ -129,8 +130,21 @@ public class FamiliaService {
     /** Un documento ya registrado casi siempre es un duplicado por error. */
     @Transactional(readOnly = true)
     public boolean documentoYaRegistrado(String numeroDocumento) {
-        return numeroDocumento != null && !numeroDocumento.isBlank()
-                && familias.existsByNumeroDocumento(numeroDocumento.trim());
+        return documentosYaRegistrados(numeroDocumento, null);
+    }
+
+    /** Checks both applicants against both document fields on every existing family. */
+    @Transactional(readOnly = true)
+    public boolean documentosYaRegistrados(String documentoPrincipal, String documentoSegundo) {
+        String principal = normalizarDocumento(documentoPrincipal);
+        String segundo = normalizarDocumento(documentoSegundo);
+        if (principal == null && segundo == null) return false;
+        return familias.contarPorDocumentosNormalizados(principal, segundo) > 0;
+    }
+
+    private static String normalizarDocumento(String documento) {
+        if (documento == null || documento.isBlank()) return null;
+        return documento.replaceAll("[\\s.\\-/]", "").toUpperCase(Locale.ROOT);
     }
 
     // =====================================================================
@@ -315,7 +329,7 @@ public class FamiliaService {
             // Dos solicitantes no pueden ser la misma persona
             String d1 = texto(datos.get("numero_documento"));
             String d2 = texto(datos.get("segundo_numero_documento"));
-            if (!d1.isEmpty() && d1.equalsIgnoreCase(d2)) {
+            if (!d1.isEmpty() && normalizarDocumento(d1).equals(normalizarDocumento(d2))) {
                 malos.add("segundo_numero_documento");
             }
         }
