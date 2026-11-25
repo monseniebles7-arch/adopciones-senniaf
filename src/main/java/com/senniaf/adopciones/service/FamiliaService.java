@@ -3,10 +3,12 @@ package com.senniaf.adopciones.service;
 import com.senniaf.adopciones.model.EstadoFamilia;
 import com.senniaf.adopciones.model.EventoFamilia;
 import com.senniaf.adopciones.model.FamiliaSolicitante;
+import com.senniaf.adopciones.model.Rol;
 import com.senniaf.adopciones.model.TipoEvento;
 import com.senniaf.adopciones.model.Usuario;
 import com.senniaf.adopciones.repository.EventoFamiliaRepository;
 import com.senniaf.adopciones.repository.FamiliaRepository;
+import com.senniaf.adopciones.repository.UsuarioRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -22,6 +24,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Comparator;
+import java.util.Objects;
 
 /**
  * Logica de la familia solicitante: registrar, consultar, modificar y
@@ -59,10 +63,13 @@ public class FamiliaService {
 
     private final FamiliaRepository familias;
     private final EventoFamiliaRepository eventos;
+    private final UsuarioRepository usuarios;
 
-    public FamiliaService(FamiliaRepository familias, EventoFamiliaRepository eventos) {
+    public FamiliaService(FamiliaRepository familias, EventoFamiliaRepository eventos,
+                          UsuarioRepository usuarios) {
         this.familias = familias;
         this.eventos = eventos;
+        this.usuarios = usuarios;
     }
 
     // =====================================================================
@@ -77,6 +84,10 @@ public class FamiliaService {
         f.setEstado(EstadoFamilia.REGISTRADA);
         f.setFechaCreacion(LocalDateTime.now());
         f.setCreadoPor(usuario == null ? "AUTORREGISTRO" : usuario.getUsername());
+        String tecnicoAsignado = usuario != null && usuario.getRol() == Rol.TECNICO
+                ? usuario.getUsername()
+                : seleccionarTecnicoDisponible().map(Usuario::getUsername).orElse(null);
+        f.setTecnicoAsignado(tecnicoAsignado);
 
         // Igual que el expediente: se guarda primero para que la base
         // asigne el id, y con ese id se arma el numero visible.
@@ -85,9 +96,34 @@ public class FamiliaService {
                 f.getFechaCreacion().getYear(), f.getId()));
         familias.save(f);
 
-        registrar(f, TipoEvento.CREACION,
-                "Solicitud registrada con los datos iniciales de la familia.", usuario);
+        String detalleCreacion = tecnicoAsignado == null
+                ? "Solicitud recibida; pendiente de asignación al Equipo Técnico."
+                : "Solicitud registrada y asignada al Técnico " + tecnicoAsignado + ".";
+        registrar(f, TipoEvento.CREACION, detalleCreacion, usuario);
         return f;
+    }
+
+    /** Asigna solicitudes históricas que quedaron sin responsable antes de esta función. */
+    @Transactional
+    public void asignarPendientesSinResponsable() {
+        for (FamiliaSolicitante familia : familias.findByTecnicoAsignadoIsNullOrderByFechaCreacionAsc()) {
+            Optional<Usuario> creador = usuarios.findByUsername(familia.getCreadoPor())
+                    .filter(u -> u.getRol() == Rol.TECNICO && u.isEnabled());
+            Optional<Usuario> asignado = creador.isPresent() ? creador : seleccionarTecnicoDisponible();
+            if (asignado.isEmpty()) continue;
+
+            familia.setTecnicoAsignado(asignado.get().getUsername());
+            familias.save(familia);
+            registrar(familia, TipoEvento.MODIFICACION,
+                    "Solicitud asignada al Técnico " + asignado.get().getUsername() + ".",
+                    "SISTEMA", "SISTEMA");
+        }
+    }
+
+    private Optional<Usuario> seleccionarTecnicoDisponible() {
+        return usuarios.findByRolAndHabilitadoTrueOrderByIdAsc(Rol.TECNICO).stream()
+                .min(Comparator.comparingLong(u ->
+                        familias.countByTecnicoAsignadoAndEstadoNot(u.getUsername(), EstadoFamilia.CERRADA)));
     }
 
     /** Un documento ya registrado casi siempre es un duplicado por error. */
@@ -103,7 +139,8 @@ public class FamiliaService {
 
     @Transactional(readOnly = true)
     public Page<FamiliaSolicitante> buscar(String texto, String estado, String modalidad,
-                                            String provincia, int pagina, int tamano) {
+                                            String provincia, String tecnicoAsignado,
+                                            int pagina, int tamano) {
         String patron = (texto == null || texto.isBlank())
                 ? null
                 : "%" + texto.trim().toLowerCase() + "%";
@@ -119,8 +156,11 @@ public class FamiliaService {
 
         String modalidadFiltro = (modalidad == null || modalidad.isBlank()) ? null : modalidad.trim();
         String provinciaFiltro = (provincia == null || provincia.isBlank()) ? null : provincia.trim();
+        String tecnicoFiltro = (tecnicoAsignado == null || tecnicoAsignado.isBlank())
+                ? null : tecnicoAsignado.trim();
 
         return familias.buscar(patron, estadoFiltro, modalidadFiltro, provinciaFiltro,
+                tecnicoFiltro,
                 PageRequest.of(Math.max(pagina, 0), Math.min(Math.max(tamano, 1), 50),
                         Sort.by(Sort.Direction.DESC, "fechaCreacion")));
     }
@@ -128,6 +168,14 @@ public class FamiliaService {
     @Transactional(readOnly = true)
     public Optional<FamiliaSolicitante> porNumero(String numero) {
         return familias.findByNumeroSolicitud(numero);
+    }
+
+    /** A non-existent solicitud is left for the caller's normal 404 handling. */
+    @Transactional(readOnly = true)
+    public boolean esResponsable(String numero, Usuario usuario) {
+        return familias.findByNumeroSolicitud(numero)
+                .map(f -> Objects.equals(f.getTecnicoAsignado(), usuario.getUsername()))
+                .orElse(true);
     }
 
     /** Ver la ficha deja constancia: la pantalla lo promete, tiene que cumplirse. */
@@ -410,6 +458,7 @@ public class FamiliaService {
         m.put("integrantes", "si".equals(f.getTieneSegundo()) ? 2 : 1);
         m.put("fechaCreacion", f.getFechaCreacion() == null ? "" : f.getFechaCreacion().format(FECHA_HORA));
         m.put("creadoPor", nn(f.getCreadoPor()));
+        m.put("tecnicoAsignado", nn(f.getTecnicoAsignado()));
         return m;
     }
 

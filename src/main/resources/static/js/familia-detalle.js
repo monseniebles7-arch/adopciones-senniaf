@@ -93,6 +93,7 @@
     document.getElementById('c-rango').textContent = f.rangoEdad || '—';
     document.getElementById('c-creador').textContent =
       (f.creadoPor || '—') + (f.fechaCreacion ? ' · ' + f.fechaCreacion : '');
+    document.getElementById('c-tecnico').textContent = f.tecnicoAsignado || 'Sin asignar';
   }
 
   function pintarFicha(f) {
@@ -233,6 +234,7 @@
 
   function prepararEstado(f) {
     if (sesion.rol !== 'TECNICO') return;
+    if (f.tecnicoAsignado !== Sesion.usuario()) return;
     if (f.estado === 'CERRADA') { prepararReapertura(); return; }
 
     const caja = document.getElementById('control-estado');
@@ -260,7 +262,11 @@
           '/api/tecnico/familias/' + encodeURIComponent(numero) + '/estado',
           { method: 'PATCH', body: JSON.stringify({ estado: select.value }) });
 
-        if (r.status === 403) { fallar('Tu rol no puede cambiar el estado de la solicitud.'); return; }
+        if (r.status === 403) {
+          const detalle = await r.json().catch(() => ({}));
+          fallar(detalle.error || 'No tienes permiso para cambiar el estado de la solicitud.');
+          return;
+        }
         if (!r.ok) {
           const detalle = await r.json().catch(() => ({}));
           fallar(detalle.error || 'No se pudo cambiar el estado (' + r.status + ').');
@@ -289,6 +295,11 @@
       const familia = await r.json();
       pintarCabecera(familia);
       pintarFicha(familia);
+      if (sesion.rol === 'TECNICO' && familia.tecnicoAsignado !== Sesion.usuario()) {
+        const aviso = document.getElementById('aviso-responsable');
+        aviso.textContent = 'Esta solicitud está asignada a ' + (familia.tecnicoAsignado || 'otro Técnico') + '. Puedes consultar la ficha, pero solo la persona responsable puede modificarla o evaluarla.';
+        aviso.hidden = false;
+      }
       prepararEstado(familia);
       contenido.hidden = false;
 

@@ -64,6 +64,10 @@ public class FamiliaController {
     public ResponseEntity<Map<String, Object>> actualizar(@PathVariable String numero,
                                                            @RequestBody Map<String, Object> datos,
                                                            @AuthenticationPrincipal Usuario usuario) {
+        if (!servicio.esResponsable(numero, usuario)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "La solicitud está asignada a otro Técnico."));
+        }
         Optional<FamiliaSolicitante> encontrada = servicio.porNumero(numero);
         if (encontrada.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -89,6 +93,10 @@ public class FamiliaController {
     public ResponseEntity<Map<String, Object>> cambiarEstado(@PathVariable String numero,
                                                               @RequestBody Map<String, Object> cuerpo,
                                                               @AuthenticationPrincipal Usuario usuario) {
+        if (!servicio.esResponsable(numero, usuario)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "La solicitud está asignada a otro Técnico."));
+        }
         Optional<FamiliaSolicitante> encontrada = servicio.porNumero(numero);
         if (encontrada.isEmpty()) {
             return ResponseEntity.notFound().build();

@@ -52,6 +52,10 @@ public class DictamenController {
     public ResponseEntity<Map<String, Object>> emitir(@PathVariable String numero,
                                                        @RequestBody Map<String, Object> cuerpo,
                                                        @AuthenticationPrincipal Usuario usuario) {
+        if (!familias.esResponsable(numero, usuario)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "La solicitud está asignada a otro Técnico."));
+        }
         try {
             DictamenIdoneidad d = dictamenes.emitir(numero, cuerpo, usuario);
             return ResponseEntity.status(HttpStatus.CREATED).body(dictamenes.aMapa(d));
@@ -73,6 +77,10 @@ public class DictamenController {
     public ResponseEntity<Map<String, Object>> cambiar(@PathVariable String numero,
                                                         @RequestBody Map<String, Object> cuerpo,
                                                         @AuthenticationPrincipal Usuario usuario) {
+        if (!familias.esResponsable(numero, usuario)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "La solicitud está asignada a otro Técnico."));
+        }
         try {
             DictamenIdoneidad d = dictamenes.cambiar(numero, cuerpo, usuario);
             return ResponseEntity.status(HttpStatus.CREATED).body(dictamenes.aMapa(d));
@@ -94,6 +102,10 @@ public class DictamenController {
     public ResponseEntity<Map<String, Object>> reabrir(@PathVariable String numero,
                                                         @RequestBody Map<String, Object> cuerpo,
                                                         @AuthenticationPrincipal Usuario usuario) {
+        if (!familias.esResponsable(numero, usuario)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "La solicitud está asignada a otro Técnico."));
+        }
         try {
             FamiliaSolicitante f = dictamenes.reabrir(numero, cuerpo, usuario);
             return ResponseEntity.ok(familias.aDetalle(f));

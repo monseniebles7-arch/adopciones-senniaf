@@ -15,6 +15,7 @@
      Quien bloquea de verdad es el backend, que responde 403. */
   if (sesion.rol === 'TECNICO') {
     document.getElementById('btn-nueva').hidden = false;
+    document.getElementById('filtro-mias').hidden = false;
   }
 
   const form = document.getElementById('form-filtros');
@@ -30,6 +31,10 @@
   const TAMANO = 10;
   let pagina = 0;
   let totalPaginas = 1;
+  const soloMias = document.getElementById('mias');
+  const parametrosIniciales = new URLSearchParams(location.search);
+  if (soloMias) soloMias.checked = parametrosIniciales.get('mias') === '1';
+  if (parametrosIniciales.has('estado')) form.estado.value = parametrosIniciales.get('estado');
 
   const ESTADO = {
     REGISTRADA: 'Registrada',
@@ -94,6 +99,7 @@
       celda(residencia),
       celda(f.rangoEdad),
       tdEstado,
+      celda(f.tecnicoAsignado),
       celda(f.fechaCreacion)
     );
     return tr;
@@ -109,6 +115,7 @@
     if (form.estado.value) p.set('estado', form.estado.value);
     if (form.modalidad.value) p.set('modalidad', form.modalidad.value);
     if (form.provincia.value) p.set('provincia', form.provincia.value);
+    if (soloMias && soloMias.checked) p.set('mias', 'true');
     p.set('pagina', pagina);
     p.set('tamano', TAMANO);
 
@@ -144,6 +151,7 @@
   }
 
   form.addEventListener('submit', e => { e.preventDefault(); pagina = 0; cargar(); });
+  if (soloMias) soloMias.addEventListener('change', () => { pagina = 0; cargar(); });
 
   document.getElementById('btn-limpiar').addEventListener('click', () => {
     form.reset();

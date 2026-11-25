@@ -6,6 +6,7 @@ import com.senniaf.adopciones.model.Usuario;
 import com.senniaf.adopciones.model.EventoSistema;
 import com.senniaf.adopciones.repository.EventoSistemaRepository;
 import com.senniaf.adopciones.repository.UsuarioRepository;
+import com.senniaf.adopciones.service.FamiliaService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,12 +38,14 @@ public class UsuarioAdminController {
     private final UsuarioRepository usuarioRepository;
     private final EventoSistemaRepository eventosSistema;
     private final PasswordEncoder passwordEncoder;
+    private final FamiliaService familiaService;
 
     public UsuarioAdminController(UsuarioRepository usuarioRepository, EventoSistemaRepository eventosSistema,
-                                  PasswordEncoder passwordEncoder) {
+                                  PasswordEncoder passwordEncoder, FamiliaService familiaService) {
         this.usuarioRepository = usuarioRepository;
         this.eventosSistema = eventosSistema;
         this.passwordEncoder = passwordEncoder;
+        this.familiaService = familiaService;
     }
 
     @PostMapping
@@ -65,6 +68,9 @@ public class UsuarioAdminController {
         nuevo.setHabilitado(peticion.isHabilitado());
 
         usuarioRepository.save(nuevo);
+        if (nuevo.getRol() == Rol.TECNICO && nuevo.isEnabled()) {
+            familiaService.asignarPendientesSinResponsable();
+        }
         eventosSistema.save(new EventoSistema("ALTA_USUARIO", "USUARIO", nuevo.getUsername(),
                 administrador.getUsername(), administrador.getRol().name()));
 

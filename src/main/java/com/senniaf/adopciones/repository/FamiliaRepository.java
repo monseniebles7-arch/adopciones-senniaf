@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
+import java.util.List;
 
 public interface FamiliaRepository extends JpaRepository<FamiliaSolicitante, Long> {
 
@@ -34,12 +35,18 @@ public interface FamiliaRepository extends JpaRepository<FamiliaSolicitante, Lon
              AND (:estado IS NULL OR f.estado = :estado)
              AND (:modalidad IS NULL OR f.modalidadSolicitada = :modalidad)
              AND (:provincia IS NULL OR f.provinciaResidencia = :provincia)
+             AND (:tecnico IS NULL OR f.tecnicoAsignado = :tecnico)
            """)
     Page<FamiliaSolicitante> buscar(@Param("texto") String texto,
                                      @Param("estado") EstadoFamilia estado,
                                      @Param("modalidad") String modalidad,
                                      @Param("provincia") String provincia,
+                                     @Param("tecnico") String tecnico,
                                      Pageable pageable);
+
+    long countByTecnicoAsignadoAndEstadoNot(String tecnicoAsignado, EstadoFamilia estado);
+
+    List<FamiliaSolicitante> findByTecnicoAsignadoIsNullOrderByFechaCreacionAsc();
 
     boolean existsByNumeroDocumento(String numeroDocumento);
 

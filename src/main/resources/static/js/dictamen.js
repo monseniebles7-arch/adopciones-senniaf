@@ -205,6 +205,7 @@
 
   function prepararCambio(familia, dictamen) {
     if (Sesion.datos().rol !== 'TECNICO') return;
+    if (familia.tecnicoAsignado !== Sesion.usuario()) return;
     if (familia.estado === 'CERRADA') { $('cambio-cerrada').hidden = false; return; }   // se reabre arriba
     resultadoVigente = dictamen.resultado;
     // La opción igual a la vigente no tiene sentido: se deshabilita.
@@ -252,7 +253,7 @@
       if (r.status === 201) { location.reload(); return; }
 
       const detalle = await r.json().catch(() => ({}));
-      if (r.status === 403) fallar('Solo el Equipo Técnico puede cambiar un dictamen.');
+      if (r.status === 403) fallar(detalle.error || 'Solo el Técnico responsable puede cambiar este dictamen.');
       else if (r.status === 400) {
         fallar(detalle.error || 'El cambio no cumple las reglas.');
         (detalle.campos || []).forEach(c => marcarCambio(c, detalle.error));
@@ -270,7 +271,8 @@
   async function iniciar(familia) {
     const sesion = Sesion.datos();
     if (!sesion) return;
-    const puedeEscribir = sesion.rol === 'TECNICO';
+    const puedeEscribir = sesion.rol === 'TECNICO'
+      && familia.tecnicoAsignado === Sesion.usuario();
     const numero = familia.numeroSolicitud;
 
     try {
@@ -327,7 +329,7 @@
       if (r.status === 201) { location.reload(); return; }   // ficha e historial al día
 
       const detalle = await r.json().catch(() => ({}));
-      if (r.status === 403) fallar('Tu rol no puede emitir dictámenes.');
+      if (r.status === 403) fallar(detalle.error || 'Solo el Técnico responsable puede emitir este dictamen.');
       else if (r.status === 400) {
         fallar(detalle.error || 'El dictamen no cumple las reglas.');
         (detalle.campos || []).forEach(c => marcar(c, detalle.error));

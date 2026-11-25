@@ -30,6 +30,15 @@
   const creada = new URLSearchParams(location.search).get('creada');
   if (creada) {
     document.getElementById('numero-creado').textContent = creada;
+    const parametros = new URLSearchParams(location.search);
+    if (publico) {
+      document.getElementById('mensaje-creada').textContent = 'Tu solicitud fue recibida. Número de solicitud:';
+      document.getElementById('mensaje-asignacion').textContent = parametros.get('pendiente') === '1'
+        ? 'Está guardada y pendiente de asignación; se asignará automáticamente cuando haya un Técnico disponible.'
+        : 'Un Técnico del equipo quedó a cargo de atenderla.';
+    } else {
+      document.getElementById('mensaje-creada').textContent = 'Solicitud registrada correctamente. Número:';
+    }
     bannerOk.hidden = false;
   }
 
@@ -254,7 +263,13 @@
       const familia = await r.json();
       /* Se recarga con el número para que el formulario quede limpio
          para el siguiente registro. */
-      location.href = 'familia_registro.html?' + (publico ? 'publico=1&' : '') + 'creada=' + encodeURIComponent(familia.numeroSolicitud);
+      const consulta = new URLSearchParams();
+      if (publico) {
+        consulta.set('publico', '1');
+        if (familia.asignacionPendiente) consulta.set('pendiente', '1');
+      }
+      consulta.set('creada', familia.numeroSolicitud);
+      location.href = 'familia_registro.html?' + consulta.toString();
 
     } catch (err) {
       if (err.message !== 'sesion') fallar('No se pudo conectar con el servidor. La solicitud no se guardó.');

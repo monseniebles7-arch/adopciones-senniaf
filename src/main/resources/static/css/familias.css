@@ -13,7 +13,9 @@
 .pill.cerrada { background: #EDEFF3; color: var(--muted); }
 
 /* El listado tiene cuatro filtros en vez de tres */
-.filtros.filtros-familia { grid-template-columns: 2fr 1fr 1fr 1fr auto; }
+.filtros.filtros-familia { grid-template-columns: 2fr 1fr 1fr 1fr auto auto; }
+#filtro-mias label { display: flex; align-items: center; gap: 8px; min-height: 46px; margin: 0; }
+#filtro-mias input { width: 18px; height: 18px; margin: 0; }
 
 /* --------------------------- Formulario --------------------------- */
 

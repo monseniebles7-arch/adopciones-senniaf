@@ -41,6 +41,6 @@ public class SolicitudPublicaFamiliaController {
         FamiliaSolicitante creada = servicio.crear(datos, null);
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
                 "numeroSolicitud", creada.getNumeroSolicitud(),
-                "estado", creada.getEstado().name()));
+                "asignacionPendiente", creada.getTecnicoAsignado() == null));
     }
 }

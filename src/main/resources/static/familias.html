@@ -81,6 +81,9 @@
       <label for="provincia">Provincia</label>
       <select id="provincia" name="provincia" data-provincias-filtro="Todas"></select>
     </div>
+    <div class="field" id="filtro-mias" hidden>
+      <label class="check" for="mias"><input type="checkbox" id="mias" name="mias"> Solo mis solicitudes asignadas</label>
+    </div>
     <div class="acciones">
       <button type="submit" class="btn btn-primary">Buscar</button>
       <button type="button" class="btn btn-secondary" id="btn-limpiar">Limpiar</button>
@@ -105,6 +108,7 @@
           <th scope="col">Residencia</th>
           <th scope="col">Edad que acoge</th>
           <th scope="col">Estado</th>
+          <th scope="col">Técnico responsable</th>
           <th scope="col">Registrada</th>
         </tr>
       </thead>

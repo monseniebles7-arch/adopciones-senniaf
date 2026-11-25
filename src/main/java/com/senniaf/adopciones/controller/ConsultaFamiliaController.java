@@ -3,6 +3,7 @@ package com.senniaf.adopciones.controller;
 import com.senniaf.adopciones.model.FamiliaSolicitante;
 import com.senniaf.adopciones.model.TipoEvento;
 import com.senniaf.adopciones.model.Usuario;
+import com.senniaf.adopciones.model.Rol;
 import com.senniaf.adopciones.service.FamiliaService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -48,12 +49,15 @@ public class ConsultaFamiliaController {
                                        @RequestParam(required = false) String estado,
                                        @RequestParam(required = false) String modalidad,
                                        @RequestParam(required = false) String provincia,
+                                       @RequestParam(defaultValue = "false") boolean mias,
                                        @RequestParam(defaultValue = "0") int pagina,
                                        @RequestParam(defaultValue = "10") int tamano,
                                        @AuthenticationPrincipal Usuario usuario) {
 
+        String tecnicoAsignado = mias && usuario != null && usuario.getRol() == Rol.TECNICO
+                ? usuario.getUsername() : null;
         Page<FamiliaSolicitante> resultado =
-                servicio.buscar(q, estado, modalidad, provincia, pagina, tamano);
+                servicio.buscar(q, estado, modalidad, provincia, tecnicoAsignado, pagina, tamano);
         resultado.getContent().forEach(f -> servicio.registrar(f, TipoEvento.CONSULTA,
                 "Consulta de la solicitud desde el listado.", usuario));
 

@@ -98,6 +98,7 @@ public class FamiliaSolicitante {
 
     @Column(name = "fecha_creacion") private LocalDateTime fechaCreacion;
     @Column(name = "creado_por", length = 60) private String creadoPor;
+    @Column(name = "tecnico_asignado", length = 60) private String tecnicoAsignado;
     @Column(name = "fecha_actualizacion") private LocalDateTime fechaActualizacion;
     @Column(name = "actualizado_por", length = 60) private String actualizadoPor;
 
@@ -250,6 +251,9 @@ public class FamiliaSolicitante {
 
     public String getCreadoPor() { return creadoPor; }
     public void setCreadoPor(String v) { this.creadoPor = v; }
+
+    public String getTecnicoAsignado() { return tecnicoAsignado; }
+    public void setTecnicoAsignado(String v) { this.tecnicoAsignado = v; }
 
     public LocalDateTime getFechaActualizacion() { return fechaActualizacion; }
     public void setFechaActualizacion(LocalDateTime v) { this.fechaActualizacion = v; }
