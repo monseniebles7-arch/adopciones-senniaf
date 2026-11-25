@@ -39,7 +39,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest(properties = {
         "spring.datasource.url=jdbc:h2:mem:pruebas_api_familias;DB_CLOSE_DELAY=-1",
-        "app.documentos.ruta=./target/documentos-prueba"
+        "app.documentos.ruta=./target/documentos-prueba",
+        "app.solicitudes.tiempo-minimo-segundos=1"
 })
 @AutoConfigureMockMvc
 class FamiliaApiIntegrationTest {
@@ -67,6 +68,24 @@ class FamiliaApiIntegrationTest {
     private String admin() throws Exception { return token("admin", "Admin123!"); }
     private String tecnico() throws Exception { return token("tecnico1", "Tecnico123!"); }
     private String juez() throws Exception { return token("juez1", "Juez123!"); }
+
+    private String tokenFormularioPublico() throws Exception {
+        String cuerpo = mvc.perform(get("/api/solicitudes/familias/token"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        return json.readTree(cuerpo).get("token").asText();
+    }
+
+    private Map<String, Object> datosPublicos(String tokenFormulario) {
+        Map<String, Object> datos = datosValidos();
+        datos.put("website", "");
+        datos.put("form_token", tokenFormulario);
+        return datos;
+    }
+
+    private void esperarTiempoMinimoDeFormulario() throws InterruptedException {
+        Thread.sleep(1100);
+    }
 
     private Map<String, Object> datosValidos() {
         Map<String, Object> d = new HashMap<>();
@@ -168,6 +187,57 @@ class FamiliaApiIntegrationTest {
         Map<String, Object> datos = datosValidos();
         enviar("POST", "/api/tecnico/familias", tecnico(), datos).andExpect(status().isCreated());
         enviar("POST", "/api/tecnico/familias", tecnico(), datos).andExpect(status().isConflict());
+    }
+
+    @Test
+    @DisplayName("Autorregistro público acepta token válido una sola vez y no requiere sesión")
+    void autorregistroPublicoYTokenDeUnSoloUso() throws Exception {
+        String tokenFormulario = tokenFormularioPublico();
+        Map<String, Object> datos = datosPublicos(tokenFormulario);
+        esperarTiempoMinimoDeFormulario();
+
+        enviar("POST", "/api/solicitudes/familias", null, datos)
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.numeroSolicitud", startsWith("FAM-")))
+                .andExpect(jsonPath("$.asignacionPendiente").value(false));
+
+        datos.put("numero_documento", "OTRO-" + SECUENCIA.getAndIncrement());
+        enviar("POST", "/api/solicitudes/familias", null, datos)
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("El campo trampa del autorregistro rechaza el envío automatizado")
+    void autorregistroPublicoRechazaCampoTrampa() throws Exception {
+        Map<String, Object> datos = datosPublicos("");
+        datos.put("website", "https://spam.invalid");
+
+        enviar("POST", "/api/solicitudes/familias", null, datos)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Solicitud no válida."));
+    }
+
+    @Test
+    @DisplayName("Detecta un documento secundario repetido aunque llegue normalizado como principal")
+    void documentoSecundarioDuplicadoConFormatoDistinto() throws Exception {
+        Map<String, Object> original = datosValidos();
+        original.put("tiene_segundo", "si");
+        original.put("segundo_nombres", "Luis");
+        original.put("segundo_apellidos", "Prueba Automatica");
+        original.put("segundo_tipo_documento", "cedula");
+        original.put("segundo_numero_documento", "8-777-" + SECUENCIA.getAndIncrement());
+        original.put("segundo_fecha_nacimiento", "1986-02-03");
+        original.put("segundo_ocupacion", "Docente");
+        enviar("POST", "/api/tecnico/familias", tecnico(), original).andExpect(status().isCreated());
+
+        String documentoSinFormato = original.get("segundo_numero_documento").toString().replace("-", "");
+        Map<String, Object> duplicada = datosPublicos(tokenFormularioPublico());
+        duplicada.put("numero_documento", documentoSinFormato);
+        esperarTiempoMinimoDeFormulario();
+
+        enviar("POST", "/api/solicitudes/familias", null, duplicada)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.campos", hasItem("segundo_numero_documento")));
     }
 
     @Test

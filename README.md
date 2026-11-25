@@ -119,9 +119,15 @@ Pruebas incluidas:
 - `JwtServiceTest`: generación, validación y expiración de tokens.
 - `RoleAccessIntegrationTest`: prueba de extremo a extremo (login real +
   acceso/rechazo a rutas protegidas según el rol).
+- `FamiliaApiIntegrationTest` (16 pruebas): registro técnico y público,
+  documentos duplicados, campo trampa y token antirrobots.
+- `SolicitudFamiliaRateLimitFilterTest` (3),
+  `TokenFormularioSolicitudTest` (3) y
+  `FamiliaDocumentosDuplicadosTest` (2): límite por IP, tokens de un solo
+  uso y comparación normalizada de los documentos de ambos solicitantes.
 - `Sprint9ApiIntegrationTest` (12 pruebas) y `EstadoJuridicoServiceTest`
   (4 pruebas nuevas): resolución obligatoria, historial jurídico y
-  búsqueda por edad. En total, 96 pruebas.
+  búsqueda por edad. En total, 107 pruebas.
 
 ## Integración continua (GitHub Actions)
 
